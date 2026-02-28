@@ -11,3 +11,4 @@ coverage
 __pycache__/
 *.pyc
 customer-gateway/monitor/events.json
+customer-gateway/monitor/debug-events.json
