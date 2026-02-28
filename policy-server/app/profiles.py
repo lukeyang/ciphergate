@@ -38,11 +38,10 @@ _SEXUAL_SEED: list[float] = [
     0.17, 0.15, 0.18, 0.24, 0.31, 0.35, 0.30, 0.23,
 ]
 
-# How much weight the embedding-semantic portion gets vs the customer-side
-# keyword signal slot.  Both are useful — the semantic part lets the SaaS
-# server contribute its own judgement.
-_SEMANTIC_WEIGHT = 0.35
-_SIGNAL_WEIGHT = 0.65
+# Stronger emphasis on customer-side signal so explicit threat keywords
+# are not diluted below policy thresholds after encrypted dot-product.
+_SEMANTIC_WEIGHT = 0.12
+_SIGNAL_WEIGHT = 0.88
 
 
 def _expand_seed(seed: list[float], embedding_dim: int) -> list[float]:

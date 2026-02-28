@@ -8,5 +8,6 @@ coverage
 customer-gateway/keys/*.seal
 policy-server/keys/*.seal
 customer-gateway/monitor/events.json
+customer-gateway/monitor/debug-events.json
 __pycache__/
 *.pyc

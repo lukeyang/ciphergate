@@ -134,7 +134,7 @@ export default function HomePage(): JSX.Element {
       const response = await fetch("/api/policy-check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, message: trimmed }),
+        body: JSON.stringify({ sessionId, message: trimmed, inputMode: source }),
       });
 
       if (!response.ok) {

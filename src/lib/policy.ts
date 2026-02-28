@@ -34,7 +34,7 @@ export function evaluatePolicy(scores: PolicyScores): PolicyResult {
 
   return {
     decision: "ALLOW",
-    category: top.category,
+    category: null,
     confidence: top.score,
     scores: {
       harassment: clamp01(scores.harassment),

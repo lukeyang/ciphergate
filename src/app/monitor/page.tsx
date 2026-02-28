@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-import { MonitorEntry } from "@/lib/monitor-store";
+import type { PolicyDebugEntry } from "@/lib/debug-log-store";
+import type { MonitorEntry } from "@/lib/monitor-store";
 
 type MonitorResponse = {
   entries: MonitorEntry[];
+  debugEntries: PolicyDebugEntry[];
 };
 
 function formatCategory(entry: MonitorEntry): string {
@@ -18,6 +20,7 @@ function formatCategory(entry: MonitorEntry): string {
 
 export default function MonitorPage(): JSX.Element {
   const [entries, setEntries] = useState<MonitorEntry[]>([]);
+  const [debugEntries, setDebugEntries] = useState<PolicyDebugEntry[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -30,6 +33,7 @@ export default function MonitorPage(): JSX.Element {
       const payload = (await response.json()) as MonitorResponse;
       if (mounted) {
         setEntries(payload.entries);
+        setDebugEntries(payload.debugEntries);
       }
     }
 
@@ -60,6 +64,8 @@ export default function MonitorPage(): JSX.Element {
       avgProcessingMs: avgProcessingMs.toFixed(1),
     };
   }, [entries]);
+
+  const recentDebug = useMemo(() => debugEntries.slice(0, 40), [debugEntries]);
 
   return (
     <main className="monitor-shell">
@@ -145,6 +151,61 @@ export default function MonitorPage(): JSX.Element {
                     <td>{formatCategory(entry)}</td>
                     <td className="mono">{entry.confidence.toFixed(3)}</td>
                     <td className="mono">{entry.processingMs ?? 0} ms</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="monitor-panel">
+        <div className="monitor-panel-header">
+          <p className="monitor-panel-title">Gateway Debug Trace</p>
+          <div className="monitor-policy-tags">
+            <span className="tag">Local only</span>
+            <span className="tag">Plaintext visible (customer boundary)</span>
+          </div>
+        </div>
+
+        {recentDebug.length === 0 ? (
+          <p className="empty-state">No debug traces yet.</p>
+        ) : (
+          <div className="monitor-table-wrap">
+            <table className="monitor-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Session</th>
+                  <th>Mode</th>
+                  <th>Message</th>
+                  <th>Risk (H/T/S)</th>
+                  <th>Decision</th>
+                  <th>Category</th>
+                  <th>Latency</th>
+                  <th>Diagnostics</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentDebug.map((entry) => (
+                  <tr key={entry.id}>
+                    <td className="mono">{new Date(entry.createdAt).toLocaleTimeString()}</td>
+                    <td className="mono">{entry.sessionId.slice(0, 8)}…</td>
+                    <td>{entry.inputMode}</td>
+                    <td style={{ maxWidth: "220px", wordBreak: "break-word" }}>{entry.message}</td>
+                    <td className="mono">
+                      {(entry.scores?.harassment ?? 0).toFixed(3)} / {(entry.scores?.threat ?? 0).toFixed(3)} / {(entry.scores?.sexual ?? 0).toFixed(3)}
+                    </td>
+                    <td>
+                      <span className={`decision-pill ${entry.decision === "BLOCK" ? "pill-danger" : "pill-safe"}`}>
+                        {entry.decision ?? "-"}
+                      </span>
+                    </td>
+                    <td>{entry.category ?? "-"}</td>
+                    <td className="mono">{entry.processingMs ?? 0} ms</td>
+                    <td style={{ maxWidth: "260px", wordBreak: "break-word" }}>
+                      {entry.error ? `error: ${entry.error}` : (entry.chatDiagnostics?.join(" | ") ?? "-")}
+                    </td>
                   </tr>
                 ))}
               </tbody>

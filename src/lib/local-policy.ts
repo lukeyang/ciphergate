@@ -29,6 +29,11 @@ const THREAT_PATTERNS = [
   /retaliate/gi,
   /destroy your company/gi,
   /죽여버리/gi,
+  /죽어버리/gi,
+  /죽을래/gi,
+  /죽고싶/gi,
+  /너.*죽/gi,
+  /죽여줄/gi,
   /가만 안 둬/gi,
   /해치겠/gi,
   /찾아가서/gi,
@@ -41,6 +46,9 @@ const THREAT_CRITICAL_PATTERNS = [
   /kill you/gi,
   /i will hurt/gi,
   /죽여버리/gi,
+  /죽어버리/gi,
+  /죽을래/gi,
+  /너.*죽/gi,
   /해치겠/gi
 ];
 
@@ -64,36 +72,101 @@ const SEXUAL_PATTERNS = [
 ];
 
 export function scoreLocally(message: string, embedding: number[]): PolicyScores {
-  const lower = message.toLowerCase();
+  return scoreLocallyWithDebug(message, embedding).scores;
+}
 
-  const harassmentKeyword = scoreCategory(lower, HARASSMENT_PATTERNS, 0.9);
-  const threatKeyword = scoreCategory(lower, THREAT_PATTERNS, 1.1);
-  const sexualKeyword = scoreCategory(lower, SEXUAL_PATTERNS, 1.05);
+export type LocalPolicyDebug = {
+  normalizedMessage: string;
+  repeatedAbuseBoost: number;
+  threatCriticalBoost: number;
+  harassment: CategoryDebug;
+  threat: CategoryDebug;
+  sexual: CategoryDebug;
+};
+
+type CategoryDebug = {
+  keyword: number;
+  semantic: number;
+  combined: number;
+  matchCount: number;
+  matchedPatterns: string[];
+};
+
+export function scoreLocallyWithDebug(message: string, embedding: number[]): { scores: PolicyScores; debug: LocalPolicyDebug } {
+  const lower = message.toLowerCase();
+  const repetitionBoost = repeatedAbuseBoost(lower);
+
+  const harassmentKeyword = scoreCategory(lower, HARASSMENT_PATTERNS, 0.9, repetitionBoost);
+  const threatKeyword = scoreCategory(lower, THREAT_PATTERNS, 1.1, repetitionBoost);
+  const sexualKeyword = scoreCategory(lower, SEXUAL_PATTERNS, 1.05, repetitionBoost);
 
   const harassmentSemantic = semanticScore(embedding, HARASSMENT_SEED);
   const threatSemantic = semanticScore(embedding, THREAT_SEED);
   const sexualSemantic = semanticScore(embedding, SEXUAL_SEED);
-  const threatCriticalBoost = hasPatternMatch(lower, THREAT_CRITICAL_PATTERNS) ? 0.18 : 0;
+  const threatCriticalBoost = hasPatternMatch(lower, THREAT_CRITICAL_PATTERNS) ? 0.35 : 0;
+
+  const harassmentCombined = combineScores(harassmentKeyword.score, harassmentSemantic);
+  const threatCombined = combineScores(clamp01(threatKeyword.score + threatCriticalBoost), threatSemantic);
+  const sexualCombined = combineScores(sexualKeyword.score, sexualSemantic);
 
   return {
-    harassment: combineScores(harassmentKeyword, harassmentSemantic),
-    threat: combineScores(clamp01(threatKeyword + threatCriticalBoost), threatSemantic),
-    sexual: combineScores(sexualKeyword, sexualSemantic)
+    scores: {
+      harassment: harassmentCombined,
+      threat: threatCombined,
+      sexual: sexualCombined
+    },
+    debug: {
+      normalizedMessage: lower,
+      repeatedAbuseBoost: repetitionBoost,
+      threatCriticalBoost,
+      harassment: {
+        keyword: harassmentKeyword.score,
+        semantic: harassmentSemantic,
+        combined: harassmentCombined,
+        matchCount: harassmentKeyword.matchCount,
+        matchedPatterns: harassmentKeyword.matchedPatterns
+      },
+      threat: {
+        keyword: threatKeyword.score,
+        semantic: threatSemantic,
+        combined: threatCombined,
+        matchCount: threatKeyword.matchCount,
+        matchedPatterns: threatKeyword.matchedPatterns
+      },
+      sexual: {
+        keyword: sexualKeyword.score,
+        semantic: sexualSemantic,
+        combined: sexualCombined,
+        matchCount: sexualKeyword.matchCount,
+        matchedPatterns: sexualKeyword.matchedPatterns
+      }
+    }
   };
 }
 
-function scoreCategory(text: string, patterns: RegExp[], weight: number): number {
+function scoreCategory(text: string, patterns: RegExp[], weight: number, repetitionBoost: number): {
+  score: number;
+  matchCount: number;
+  matchedPatterns: string[];
+} {
   let matches = 0;
+  const matchedPatterns: string[] = [];
   for (const pattern of patterns) {
     pattern.lastIndex = 0;
     const found = text.match(pattern);
-    matches += found ? found.length : 0;
+    if (found && found.length > 0) {
+      matches += found.length;
+      matchedPatterns.push(pattern.source);
+    }
   }
 
-  const repetitionBoost = repeatedAbuseBoost(text);
   const keywordCurve = 1 - Math.exp(-matches * weight);
   const raw = keywordCurve + repetitionBoost;
-  return clamp01(raw);
+  return {
+    score: clamp01(raw),
+    matchCount: matches,
+    matchedPatterns
+  };
 }
 
 function repeatedAbuseBoost(text: string): number {
@@ -118,8 +191,8 @@ function repeatedAbuseBoost(text: string): number {
 function semanticScore(embedding: number[], seed: number[]): number {
   const profile = expandSeedProfile(seed, embedding.length);
   const similarity = cosineSimilarity(embedding, profile);
-  const normalized = (similarity + 1) / 2;
-  return clamp01(Math.pow(normalized, 0.8));
+  const positiveSimilarity = Math.max(0, similarity);
+  return clamp01(Math.pow(positiveSimilarity, 0.85));
 }
 
 function cosineSimilarity(a: number[], b: number[]): number {
@@ -148,7 +221,7 @@ function cosineSimilarity(a: number[], b: number[]): number {
 }
 
 function combineScores(keyword: number, semantic: number): number {
-  const mixed = 0.7 * keyword + 0.3 * semantic;
+  const mixed = 0.82 * keyword + 0.18 * semantic;
   return clamp01(mixed);
 }
 

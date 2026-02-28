@@ -12,12 +12,19 @@ const CHAT_TIMEOUT_MS_SAFE = Number.isFinite(CHAT_TIMEOUT_MS) && CHAT_TIMEOUT_MS
 const SUPPORT_PROMPT_FILE = process.env.GEMINI_SUPPORT_PROMPT_FILE ?? "prompts/support-agent.system.txt";
 const DEFAULT_SUPPORT_AGENT_SYSTEM_PROMPT = [
   "You are a customer support agent for GeminiMart, a global online marketplace similar to Amazon or eBay.",
-  "Answer as a professional and concise ecommerce support representative.",
-  "Focus on order status, returns/refunds, shipping, payments, account access, and product issues.",
-  "When useful, offer short next-step instructions customers can follow immediately.",
-  "Do not roleplay as unrelated personas or provide off-topic content.",
-  "Reply in the same language as the user message when possible.",
+  "Reply in plain text only. Never use markdown, lists, headings, or code blocks.",
+  "Keep each answer concise: one or two short sentences.",
+  "For refund requests, provide only high-level guidance unless the user explicitly asks for step-by-step details.",
+  "Stay on ecommerce support topics only: orders, shipping, payments, account, returns.",
+  "Reply in the same language as the user when possible.",
 ].join("\n");
+
+export type GeminiChatResult = {
+  reply: string;
+  diagnostics: string[];
+  usedModel: string | null;
+  fallbackUsed: boolean;
+};
 
 let promptCache: string | null = null;
 let promptLoading: Promise<string> | null = null;
@@ -37,6 +44,10 @@ type GeminiChatPayload = {
     status?: string;
   };
 };
+
+function getFinishReason(payload: GeminiChatPayload): string {
+  return payload.candidates?.[0]?.finishReason ?? "unknown";
+}
 
 function extractGeminiText(payload: GeminiChatPayload): string {
   const parts = payload.candidates?.[0]?.content?.parts ?? [];
@@ -58,6 +69,67 @@ function normalizeModelList(primaryModel: string, fallbackModels: string[]): str
     models.push(model);
   }
   return models;
+}
+
+function isKoreanText(text: string): boolean {
+  return /[가-힣]/.test(text);
+}
+
+function fallbackSupportReply(message: string): string {
+  if (isKoreanText(message)) {
+    return "문의 도와드릴게요. 주문번호나 계정 이메일을 알려주시면 바로 확인하겠습니다.";
+  }
+  return "I can help with this. Please share your order number or account email so I can check.";
+}
+
+function toSingleLinePlainText(text: string): string {
+  return text
+    .split("\n")
+    .map((line) => line.replace(/^\s*(?:[-*]|\d+[.)])\s+/g, "").trim())
+    .filter((line) => line.length > 0)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function truncateBySentence(text: string): string {
+  const normalized = toSingleLinePlainText(text);
+  if (!normalized) {
+    return normalized;
+  }
+
+  const chunks = normalized.match(/[^.!?。！？]+[.!?。！？]?/g) ?? [normalized];
+  const topTwo = chunks.slice(0, 2).join(" ").trim();
+  const preferred = topTwo.length > 0 ? topTwo : normalized;
+  if (preferred.length <= 220) {
+    return preferred;
+  }
+  return `${preferred.slice(0, 217).trimEnd()}...`;
+}
+
+function finalizePlainReply(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return "";
+  }
+  if (/[.!?。！？]$/.test(trimmed)) {
+    return trimmed;
+  }
+  return `${trimmed}.`;
+}
+
+function isLikelyIncompleteReply(reply: string, finishReason: string): boolean {
+  const trimmed = reply.trim();
+  if (!trimmed) {
+    return true;
+  }
+  if (finishReason === "MAX_TOKENS") {
+    return true;
+  }
+  if (trimmed.length < 14 && !/[.!?。！？]$/.test(trimmed)) {
+    return true;
+  }
+  return false;
 }
 
 async function loadSupportAgentSystemPrompt(): Promise<string> {
@@ -135,11 +207,17 @@ export async function embedTextWithGemini(text: string): Promise<number[]> {
   return values;
 }
 
-export async function chatWithGemini(message: string): Promise<string> {
+export async function chatWithGemini(message: string): Promise<GeminiChatResult> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return `Support reply (fallback): I can help with your request. You said: ${message}`;
+    return {
+      reply: fallbackSupportReply(message),
+      diagnostics: ["missing_api_key"],
+      usedModel: null,
+      fallbackUsed: true,
+    };
   }
+
   const modelCandidates = normalizeModelList(CHAT_MODEL, CHAT_MODEL_FALLBACKS);
   const diagnostics: string[] = [];
   const supportSystemPrompt = await loadSupportAgentSystemPrompt();
@@ -166,7 +244,7 @@ export async function chatWithGemini(message: string): Promise<string> {
             ],
             generationConfig: {
               temperature: 0.3,
-              maxOutputTokens: 512
+              maxOutputTokens: 192
             }
           }),
           cache: "no-store",
@@ -189,22 +267,41 @@ export async function chatWithGemini(message: string): Promise<string> {
     }
 
     if (!response.ok) {
+      const errorStatus = payload.error?.status ?? "UNKNOWN";
       const errorMsg = payload.error?.message ?? rawText.slice(0, 180) ?? "unknown_error";
-      diagnostics.push(`${model}:${response.status}`);
-      console.warn(`[Gemini chat] model=${model} status=${response.status} error=${errorMsg}`);
+      diagnostics.push(`${model}:http_${response.status}_${errorStatus}`);
+      console.warn(`[Gemini chat] model=${model} status=${response.status} error_status=${errorStatus} error=${errorMsg}`);
       continue;
     }
 
+    const finishReason = getFinishReason(payload);
     const text = extractGeminiText(payload);
     if (text) {
-      return text;
+      const shortReply = truncateBySentence(text);
+      const finalReply = finalizePlainReply(shortReply);
+      if (isLikelyIncompleteReply(finalReply, finishReason)) {
+        diagnostics.push(`${model}:incomplete_${finishReason}`);
+        console.warn(`[Gemini chat] model=${model} incomplete_reply finishReason=${finishReason} reply=${finalReply}`);
+        continue;
+      }
+
+      return {
+        reply: finalReply,
+        diagnostics,
+        usedModel: model,
+        fallbackUsed: false,
+      };
     }
 
-    const finishReason = payload.candidates?.[0]?.finishReason ?? "unknown";
-    diagnostics.push(`${model}:${response.status}/${finishReason}`);
+    diagnostics.push(`${model}:empty_text_${finishReason}`);
     console.warn(`[Gemini chat] model=${model} status=${response.status} empty_text finishReason=${finishReason}`);
   }
 
   console.warn(`[Gemini chat] fallback reply used; attempts=${diagnostics.join(" | ") || "none"}`);
-  return "Support reply (fallback): I can help with account, billing, and product questions.";
+  return {
+    reply: fallbackSupportReply(message),
+    diagnostics: diagnostics.length > 0 ? diagnostics : ["all_models_unavailable"],
+    usedModel: null,
+    fallbackUsed: true,
+  };
 }
