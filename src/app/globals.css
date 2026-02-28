@@ -328,13 +328,13 @@ a {
 }
 
 .msg-model {
-  align-self: flex-start;
-  flex-direction: row;
+  align-self: flex-end;
+  flex-direction: row-reverse;
 }
 
 .msg-user {
-  align-self: flex-end;
-  flex-direction: row-reverse;
+  align-self: flex-start;
+  flex-direction: row;
 }
 
 .avatar {
@@ -359,13 +359,13 @@ a {
 }
 
 .msg-user .msg-content {
-  align-items: flex-end;
-  text-align: right;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .msg-model .msg-content {
-  align-items: flex-start;
-  text-align: left;
+  align-items: flex-end;
+  text-align: right;
 }
 
 .msg-system {
@@ -977,11 +977,11 @@ a {
 }
 
 .msg-model {
-  flex-direction: row;
+  flex-direction: row-reverse;
 }
 
 .msg-user {
-  flex-direction: row-reverse;
+  flex-direction: row;
 }
 
 .avatar {
@@ -1001,13 +1001,13 @@ a {
 }
 
 .msg-user .msg-content {
-  align-items: flex-end;
-  text-align: right;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .msg-model .msg-content {
-  align-items: flex-start;
-  text-align: left;
+  align-items: flex-end;
+  text-align: right;
 }
 
 .agent-selector-wrapper {

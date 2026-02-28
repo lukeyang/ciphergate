@@ -42,20 +42,29 @@
       "i[' ]?ll kill",
       "kill you",
       "i will hurt",
+      "i will find you",
+      "watch your back",
       "죽여버리",
       "죽어버리",
       "죽을래",
       "너.*죽",
-      "해치겠"
+      "해치겠",
+      "찾아가서",
+      "보복하겠"
     ],
     "sexual": [
       "sex",
+      "have sex",
       "nude",
+      "nude body",
       "your body",
+      "your .* body",
       "sleep with me",
       "explicit",
       "sexy",
       "sexual",
+      "show me.*nude|show me.*body",
+      "send me.*nude|nude.*(photo|pic|picture)|(photo|pic|picture).*nude",
       "섹시",
       "누드",
       "야한",
@@ -63,7 +72,12 @@
       "성적",
       "몸매",
       "벗[어]",
+      "옷\\s*벗",
+      "벗고\\s*(셀피|사진)",
+      "셀피.*(찍어|보내)",
+      "벗은\\s*(셀피|사진)",
       "누드.*보내|보내.*누드",
+      "야한.*보내|보내.*야한",
       "야한.*사진|사진.*야한"
     ]
   },
@@ -71,7 +85,7 @@
     "keyword": {
       "harassment": 0.9,
       "threat": 1.1,
-      "sexual": 1.05
+      "sexual": 1.5
     },
     "combine": {
       "keyword": 0.82,
