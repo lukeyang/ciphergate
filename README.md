@@ -119,3 +119,35 @@ Open:
 
 - Customer app: `customer-app.Dockerfile`
 - Policy server: `policy-server/Dockerfile`
+
+## Cloud Run deployment (one command)
+
+This architecture deploys **two Cloud Run services**:
+
+1. `policy-server` (SaaS scoring only, no secret key, no plaintext)
+2. `customer-app` (gateway + secret key + decrypt + UI)
+
+Two services are required to preserve the zero-knowledge boundary.
+
+### Quick deploy
+
+```bash
+cp .env.deploy.example .env.deploy
+# edit .env.deploy and set GEMINI_API_KEY + GCP project values
+./preflight.sh
+./deploy.sh
+```
+
+`deploy.sh` performs:
+
+1. CKKS key material check/generation (`scripts/setup_crypto.sh`)
+2. Artifact Registry setup
+3. Build + deploy `policy-server`
+4. Build + deploy `customer-app` with `POLICY_SERVER_URL` wired automatically
+
+After completion, the script prints both Cloud Run URLs.
+
+`preflight.sh` checks account/project/billing/API/env/key-material readiness and exits non-zero when required conditions are missing.
+
+`deploy.sh` automatically sets customer `POLICY_SERVER_URL` to the just-deployed policy-server URL.  
+Only use `DEPLOY_POLICY_SERVER_URL` when you intentionally want to point customer-app to an external existing policy service.

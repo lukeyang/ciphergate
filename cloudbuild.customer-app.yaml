@@ -1,0 +1,11 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - customer-app.Dockerfile
+      - -t
+      - ${_CUSTOMER_IMAGE}
+      - .
+images:
+  - ${_CUSTOMER_IMAGE}

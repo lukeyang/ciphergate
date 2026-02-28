@@ -1,0 +1,11 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - policy-server/Dockerfile
+      - -t
+      - ${_POLICY_IMAGE}
+      - .
+images:
+  - ${_POLICY_IMAGE}

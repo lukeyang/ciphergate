@@ -1,0 +1,13 @@
+.git
+.gitignore
+.gcloudignore
+.next
+node_modules
+.venv
+coverage
+.DS_Store
+.env
+.env.*
+__pycache__/
+*.pyc
+customer-gateway/monitor/events.json
