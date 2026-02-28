@@ -75,8 +75,8 @@ export default function MonitorPage(): JSX.Element {
     <main className="monitor-shell">
       <header className="monitor-head">
         <div>
-          <p className="eyebrow amber">SaaS Policy Surface</p>
-          <h1 className="title monitor-title">SOC Monitor</h1>
+          <p className="eyebrow amber">Policy Control Surface</p>
+          <h1 className="title monitor-title">Policy Monitor</h1>
         </div>
         <Link className="nav-pill warning" href="/">
           ← Gateway
