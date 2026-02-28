@@ -4,49 +4,57 @@
     "target": "/about/kr",
     "scroll_to": 0,
     "extra_wait": 1.5,
-    "narration": "CipherGate — Google DeepMind 해커톤을 위해 제작된 제로 지식 보안 운영 센터입니다. 고객 센터 상담원은 매일 욕설·위협·성희롱에 노출되어 감정 노동과 법적 리스크를 겪습니다. CipherGate는 Gemini 임베딩과 CKKS 동형 암호화를 사용해, SaaS 운영자가 평문을 단 한 마디도 읽지 않고 메시지를 선별합니다."
+    "narration": "CipherGate — Google DeepMind 해커톤을 위해 제작된 제로 지식 보안 운영 센터입니다. 고객 센터 상담원은 매일 욕설, 위협, 성희롱에 노출되어 감정 노동과 법적 리스크를 겪습니다."
+  },
+  {
+    "action": "scroll",
+    "scroll_to": 750,
+    "extra_wait": 1.0,
+    "narration": "CipherGate는 Gemini 임베딩과 CKKS 동형 암호화를 사용합니다 — 운영자는 평문을 단 한 마디도 볼 수 없습니다."
   },
   {
     "action": "navigate",
     "target": "/",
     "scroll_to": 0,
     "extra_wait": 1.5,
-    "narration": "라이브 데모입니다. GeminiMart 고객 지원 챗 — 반대편에 실제 상담원이 대기 중입니다. 모든 메시지는 CipherGate를 통해 선별된 후 전달됩니다."
+    "narration": "라이브 데모입니다. GeminiMart 고객 지원 — 상담원에게 전달되기 전 CipherGate가 모든 메시지를 선별합니다."
   },
   {
     "action": "type_message",
     "message": "안녕하세요, 이번 달 청구서에 문의가 있어서요",
+    "type_delay": 1.5,
     "extra_wait": 1.0,
     "narration": "일반 지원 요청입니다."
   },
   {
     "action": "wait",
-    "wait": 5.0,
-    "narration": "ALLOW — 세 카테고리 모두 통과. Gemini가 응답을 생성하고 상담원이 안전하게 받습니다."
+    "wait": 4.0,
+    "narration": "ALLOW — Gemini가 응답을 생성합니다. 상담원이 안전하게 받습니다."
   },
   {
     "action": "type_message",
-    "message": "가만 안 둘 거야. 두고 봐. 이런 쓸모없는 놈들.",
+    "message": "가만 안 둘 거야. 두고 봐. 쓸모없는 놈들.",
+    "type_delay": 5.0,
     "extra_wait": 2.0,
-    "narration": "이번에는 상담원을 향한 직접적인 위협과 욕설 메시지입니다. 동일한 제로 지식 파이프라인을 거칩니다 — Gemini 임베딩, CKKS 암호화, 서버에서 암호문 스코어링. 하지만 이번에는 점수가 임계값을 넘습니다."
+    "narration": "욕설 메시지 — 상담원을 향한 직접적인 위협과 욕설입니다. 위반 점수가 임계값을 넘습니다."
   },
   {
     "action": "wait",
     "wait": 3.0,
-    "narration": "BLOCK. 세션 종료. 상담원은 이 메시지를 보지 못합니다."
+    "narration": "BLOCK. 세션 즉시 종료. 상담원은 이 메시지를 보지 못합니다."
   },
   {
     "action": "navigate",
     "target": "/monitor",
     "scroll_to": 0,
     "extra_wait": 2.5,
-    "narration": "CipherGate의 보안 운영 센터 — SOC입니다. GeminiMart 운영자가 모든 집행 이벤트를 실시간으로 확인합니다."
+    "narration": "보안 운영 센터입니다 — 모든 집행 이벤트가 실시간으로 기록됩니다."
   },
   {
     "action": "scroll",
     "scroll_to": 500,
     "extra_wait": 1.0,
-    "narration": "세션 ID, 암호화된 점수, ALLOW와 BLOCK 판단 — 하지만 평문도 없고 비밀 키도 없습니다. GeminiMart 운영자는 모든 집행 현황을 알 수 있지만, 고객 대화 내용은 단 한 마디도 볼 수 없습니다. CipherGate는 읽지 않고 집행합니다. Gemini 임베딩과 동형 암호화의 결합 — 상담원 보호와 프라이버시, 두 가지를 동시에 달성합니다."
+    "narration": "암호화된 점수, ALLOW와 BLOCK 판단 — 평문도 비밀 키도 없습니다. CipherGate는 읽지 않고 집행합니다. 모든 상담원을 위한 제로 지식 보호입니다."
   }
 ]
 

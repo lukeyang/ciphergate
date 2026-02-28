@@ -226,6 +226,11 @@ def run_browser_recording(scenes: list, tts_clips: list, video_path: str, lang: 
                 _slow_scroll(page, scroll_y, wait_after)
 
             elif action == "type_message":
+                # type_delay: wait this many seconds before typing starts
+                # (lets narration finish explaining the message first)
+                type_delay = scene.get("type_delay", 0.0)
+                if type_delay > 0:
+                    time.sleep(type_delay)
                 msg = scene.get("message", "")
                 textarea = page.locator("textarea, input[type='text']").first
                 textarea.click()
@@ -237,8 +242,9 @@ def run_browser_recording(scenes: list, tts_clips: list, video_path: str, lang: 
                 # Submit
                 submit_btn = page.locator("button[type='submit'], button:has-text('Send')").first
                 submit_btn.click()
-                # Wait for response
-                time.sleep(max(wait_after, 6.0))
+                # Wait for Gemini response; remaining time after type_delay
+                remaining = max(wait_after - type_delay, 2.0)
+                time.sleep(max(remaining, 6.0))
 
             elif action == "wait":
                 time.sleep(wait_after)
@@ -284,24 +290,48 @@ def _slow_scroll(page, target_y: int, duration: float):
         time.sleep(step_delay)
 
 
-def merge_audio_video(tts_clips: list, video_path: str, output_path: str):
+def _scene_total_duration(clip: dict, scene: dict) -> float:
+    """Compute the total real-time browser duration of a scene.
+
+    This must mirror exactly what run_browser_recording() spends on each scene
+    so that cursor_ms stays in sync with the video timeline.
+    """
+    tts_dur = clip["duration"]
+    extra_wait = scene.get("extra_wait", 0.5)
+    action = scene.get("action", "navigate")
+    if action == "type_message":
+        type_delay = scene.get("type_delay", 0.0)
+        wait_after = tts_dur + extra_wait
+        remaining = max(wait_after - type_delay, 2.0)
+        # Approximate typing time: ~40 ms/char + 0.8 s overhead
+        typing_time = len(scene.get("message", "")) * 0.04 + 0.8
+        return type_delay + typing_time + max(remaining, 6.0)
+    elif action == "wait":
+        # browser: time.sleep(clip["duration"] + scene.get("extra_wait", 0.5))
+        # note: scene["wait"] is only used when there is no narration
+        return tts_dur + scene.get("extra_wait", 0.5)
+    # navigate / scroll
+    return tts_dur + extra_wait
+
+
+def merge_audio_video(tts_clips: list, scenes: list, video_path: str, output_path: str):
     """Merge TTS audio clips with video using ffmpeg.
 
     Strategy: compute each clip's start offset (ms) from the accumulated
     scene durations, then use adelay + amix to overlay all clips onto a
     single audio track aligned with the video timeline.
     """
-    print(f"\n  Merging → {output_path}")
+    print(f"\n  Merging \u2192 {output_path}")
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     # Step 1: collect clips that actually have audio + their start offsets
     audio_clips: list[tuple[str, int]] = []  # (path, start_ms)
     cursor_ms = 0
-    for clip in tts_clips:
-        dur_ms = int(clip["duration"] * 1000)
+    for clip, scene in zip(tts_clips, scenes):
         if clip["path"] and os.path.exists(clip["path"]):
             audio_clips.append((clip["path"], cursor_ms))
-        cursor_ms += dur_ms
+        scene_ms = int(_scene_total_duration(clip, scene) * 1000)
+        cursor_ms += scene_ms
 
     if not audio_clips:
         # No audio at all — just re-encode video
@@ -398,7 +428,7 @@ def main():
 
         # Merge
         print("\n[4/4] Merging audio + video...")
-        merge_audio_video(tts_clips, video_path, output_path)
+        merge_audio_video(tts_clips, scenes, video_path, output_path)
 
     file_size = os.path.getsize(output_path) / (1024 * 1024)
     print(f"\n{'='*60}")
