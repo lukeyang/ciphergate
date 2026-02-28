@@ -169,7 +169,7 @@ export default function MonitorPage(): JSX.Element {
           <p className="monitor-panel-title">Gateway Debug Trace</p>
           <div className="monitor-policy-tags">
             <span className="tag">Local only</span>
-            <span className="tag">Plaintext visible (customer boundary)</span>
+            <span className="tag">Plaintext redacted in logs</span>
           </div>
         </div>
 
@@ -184,7 +184,7 @@ export default function MonitorPage(): JSX.Element {
                   <th>Stage</th>
                   <th>Session</th>
                   <th>Mode</th>
-                  <th>Message</th>
+                  <th>Message Digest</th>
                   <th>Risk (H/T/S)</th>
                   <th>Decision</th>
                   <th>Category</th>
@@ -199,7 +199,10 @@ export default function MonitorPage(): JSX.Element {
                     <td>{entry.stage ?? "policy"}</td>
                     <td className="mono">{entry.sessionId.slice(0, 8)}…</td>
                     <td>{entry.inputMode}</td>
-                    <td style={{ maxWidth: "220px", wordBreak: "break-word" }}>{entry.message}</td>
+                    <td className="mono" style={{ maxWidth: "220px", wordBreak: "break-word" }}>
+                      {entry.messageDigest ? `${entry.messageDigest.slice(0, 16)}…` : "-"}
+                      {typeof entry.messageLength === "number" ? ` (${entry.messageLength})` : ""}
+                    </td>
                     <td className="mono">
                       {(entry.scores?.harassment ?? 0).toFixed(3)} / {(entry.scores?.threat ?? 0).toFixed(3)} / {(entry.scores?.sexual ?? 0).toFixed(3)}
                     </td>

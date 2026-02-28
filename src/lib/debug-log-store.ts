@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -11,6 +12,8 @@ export type PolicyDebugEntry = {
   sessionId: string;
   inputMode: InputMode;
   message: string;
+  messageDigest?: string;
+  messageLength?: number;
   blockedBeforeCheck: boolean;
   ciphertextSizeBytes?: number;
   localPolicy?: LocalPolicyDebug;
@@ -28,12 +31,15 @@ export type PolicyDebugEntry = {
 
 const MONITOR_DIR = path.join(process.cwd(), "customer-gateway", "monitor");
 const DEBUG_FILE = path.join(MONITOR_DIR, "debug-events.json");
+const REDACTED_MESSAGE = "[REDACTED]";
+type NewDebugEntry = Omit<PolicyDebugEntry, "id" | "createdAt">;
 
-export function addDebugEntry(entry: Omit<PolicyDebugEntry, "id" | "createdAt">): void {
+export function addDebugEntry(entry: NewDebugEntry): void {
   const current = readEntries();
+  const sanitized = sanitizeNewEntry(entry);
   const next = [
     {
-      ...entry,
+      ...sanitized,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     },
@@ -64,8 +70,58 @@ function readEntries(): PolicyDebugEntry[] {
   try {
     const raw = fs.readFileSync(DEBUG_FILE, "utf8");
     const parsed = JSON.parse(raw) as PolicyDebugEntry[];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    const sanitized = parsed.map((entry) => sanitizeStoredEntry(entry));
+    // Migrate legacy plaintext logs in place once loaded.
+    fs.writeFileSync(DEBUG_FILE, JSON.stringify(sanitized, null, 2), "utf8");
+    return sanitized;
   } catch {
     return [];
   }
+}
+
+function sanitizeNewEntry(entry: NewDebugEntry): NewDebugEntry {
+  const hasRawMessage = Boolean(entry.message && entry.message !== REDACTED_MESSAGE);
+  const messageDigest = entry.messageDigest ?? (hasRawMessage ? hashMessage(entry.message) : undefined);
+  const messageLength = entry.messageLength ?? (hasRawMessage ? entry.message.length : undefined);
+
+  return {
+    ...entry,
+    message: REDACTED_MESSAGE,
+    messageDigest,
+    messageLength,
+    localPolicy: sanitizeLocalPolicy(entry.localPolicy),
+  };
+}
+
+function sanitizeStoredEntry(entry: PolicyDebugEntry): PolicyDebugEntry {
+  const hasRawMessage = Boolean(entry.message && entry.message !== REDACTED_MESSAGE);
+  const messageDigest = entry.messageDigest ?? (hasRawMessage ? hashMessage(entry.message) : undefined);
+  const messageLength = entry.messageLength ?? (hasRawMessage ? entry.message.length : undefined);
+
+  return {
+    ...entry,
+    message: REDACTED_MESSAGE,
+    messageDigest,
+    messageLength,
+    localPolicy: sanitizeLocalPolicy(entry.localPolicy),
+  };
+}
+
+function hashMessage(message: string): string {
+  return createHash("sha256").update(message).digest("hex");
+}
+
+function sanitizeLocalPolicy(localPolicy: LocalPolicyDebug | undefined): LocalPolicyDebug | undefined {
+  if (!localPolicy) {
+    return undefined;
+  }
+
+  return {
+    ...localPolicy,
+    normalizedMessage: REDACTED_MESSAGE,
+  };
 }

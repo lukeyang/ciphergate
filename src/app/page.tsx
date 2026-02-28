@@ -459,7 +459,7 @@ export default function HomePage(): JSX.Element {
               type="submit"
               disabled={blocked || isPolicySubmitting || !sessionId || message.trim().length === 0}
             >
-              {isPolicySubmitting ? "Encrypting/Decrypting…" : isReplyPending ? "Connecting agent…" : "Send"}
+              {isPolicySubmitting ? "Encrypting/Decrypting…" : "Send"}
             </button>
           </form>
           <div className="controls-row">
