@@ -1,13 +1,9 @@
 import { clamp01 } from "./math-utils";
+import { loadDecisionThresholds } from "./policy-tuning";
 import { PolicyCategory, PolicyResult, PolicyScores } from "./types";
 
-const THRESHOLDS: Record<PolicyCategory, number> = {
-  harassment: 0.75,
-  threat: 0.7,
-  sexual: 0.7
-};
-
 export function evaluatePolicy(scores: PolicyScores): PolicyResult {
+  const thresholds = loadDecisionThresholds();
   const ordered = [
     { category: "harassment", score: clamp01(scores.harassment) },
     { category: "threat", score: clamp01(scores.threat) },
@@ -17,7 +13,7 @@ export function evaluatePolicy(scores: PolicyScores): PolicyResult {
   ordered.sort((a, b) => b.score - a.score);
 
   const top = ordered[0];
-  const threshold = THRESHOLDS[top.category];
+  const threshold = thresholds[top.category];
 
   if (top.score >= threshold) {
     return {

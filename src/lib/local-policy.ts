@@ -1,75 +1,6 @@
 import { clamp01, expandSeedProfile } from "./math-utils";
-import { PolicyScores } from "./types";
-
-const HARASSMENT_PATTERNS = [
-  /idiot/gi,
-  /stupid/gi,
-  /dumb/gi,
-  /moron/gi,
-  /shut up/gi,
-  /f\*?\*?k you/gi,
-  /you are useless/gi,
-  /바보/gi,
-  /멍청/gi,
-  /닥쳐/gi,
-  /쓸모없/gi,
-  /욕[을]? 하/gi,
-  /개새|씨발|병신/gi
-];
-
-const THREAT_PATTERNS = [
-  /i will hurt/gi,
-  /i will kill/gi,
-  /i[' ]?ll kill/gi,
-  /kill you/gi,
-  /threaten/gi,
-  /i will find you/gi,
-  /watch your back/gi,
-  /pay for this/gi,
-  /retaliate/gi,
-  /destroy your company/gi,
-  /죽여버리/gi,
-  /죽어버리/gi,
-  /죽을래/gi,
-  /죽고싶/gi,
-  /너.*죽/gi,
-  /죽여줄/gi,
-  /가만 안 둬/gi,
-  /해치겠/gi,
-  /찾아가서/gi,
-  /보복하겠/gi
-];
-
-const THREAT_CRITICAL_PATTERNS = [
-  /i will kill/gi,
-  /i[' ]?ll kill/gi,
-  /kill you/gi,
-  /i will hurt/gi,
-  /죽여버리/gi,
-  /죽어버리/gi,
-  /죽을래/gi,
-  /너.*죽/gi,
-  /해치겠/gi
-];
-
-const SEXUAL_PATTERNS = [
-  /sex/gi,
-  /nude/gi,
-  /your body/gi,
-  /sleep with me/gi,
-  /explicit/gi,
-  /sexy/gi,
-  /sexual/gi,
-  /섹시/gi,
-  /누드/gi,
-  /야한/gi,
-  /성희롱/gi,
-  /성적/gi,
-  /몸매/gi,
-  /벗[어]/gi,
-  /누드.*보내|보내.*누드/gi,
-  /야한.*사진|사진.*야한/gi
-];
+import { loadLocalPolicyTuning } from "./policy-tuning";
+import type { PolicyScores } from "./types";
 
 export function scoreLocally(message: string, embedding: number[]): PolicyScores {
   return scoreLocallyWithDebug(message, embedding).scores;
@@ -93,21 +24,74 @@ type CategoryDebug = {
 };
 
 export function scoreLocallyWithDebug(message: string, embedding: number[]): { scores: PolicyScores; debug: LocalPolicyDebug } {
+  const tuning = loadLocalPolicyTuning();
   const lower = message.toLowerCase();
-  const repetitionBoost = repeatedAbuseBoost(lower);
+  const repetitionBoost = repeatedAbuseBoost(
+    lower,
+    tuning.repetition.minTokenLength,
+    tuning.repetition.minCountPerToken,
+    tuning.weights.repeatedAbuseBoost
+  );
 
-  const harassmentKeyword = scoreCategory(lower, HARASSMENT_PATTERNS, 0.9, repetitionBoost);
-  const threatKeyword = scoreCategory(lower, THREAT_PATTERNS, 1.1, repetitionBoost);
-  const sexualKeyword = scoreCategory(lower, SEXUAL_PATTERNS, 1.05, repetitionBoost);
+  const harassmentKeyword = scoreCategory(
+    lower,
+    tuning.patterns.harassment,
+    tuning.weights.keyword.harassment,
+    repetitionBoost
+  );
+  const threatKeyword = scoreCategory(
+    lower,
+    tuning.patterns.threat,
+    tuning.weights.keyword.threat,
+    repetitionBoost
+  );
+  const sexualKeyword = scoreCategory(
+    lower,
+    tuning.patterns.sexual,
+    tuning.weights.keyword.sexual,
+    repetitionBoost
+  );
 
-  const harassmentSemantic = semanticScore(embedding, HARASSMENT_SEED);
-  const threatSemantic = semanticScore(embedding, THREAT_SEED);
-  const sexualSemantic = semanticScore(embedding, SEXUAL_SEED);
-  const threatCriticalBoost = hasPatternMatch(lower, THREAT_CRITICAL_PATTERNS) ? 0.35 : 0;
+  const harassmentSemantic = semanticScore(
+    embedding,
+    tuning.seeds.harassment,
+    tuning.semantic.power,
+    tuning.semantic.positiveOnly
+  );
+  const threatSemantic = semanticScore(
+    embedding,
+    tuning.seeds.threat,
+    tuning.semantic.power,
+    tuning.semantic.positiveOnly
+  );
+  const sexualSemantic = semanticScore(
+    embedding,
+    tuning.seeds.sexual,
+    tuning.semantic.power,
+    tuning.semantic.positiveOnly
+  );
+  const threatCriticalBoost = hasPatternMatch(lower, tuning.patterns.threatCritical)
+    ? tuning.weights.threatCriticalBoost
+    : 0;
 
-  const harassmentCombined = combineScores(harassmentKeyword.score, harassmentSemantic);
-  const threatCombined = combineScores(clamp01(threatKeyword.score + threatCriticalBoost), threatSemantic);
-  const sexualCombined = combineScores(sexualKeyword.score, sexualSemantic);
+  const harassmentCombined = combineScores(
+    harassmentKeyword.score,
+    harassmentSemantic,
+    tuning.weights.combine.keyword,
+    tuning.weights.combine.semantic
+  );
+  const threatCombined = combineScores(
+    clamp01(threatKeyword.score + threatCriticalBoost),
+    threatSemantic,
+    tuning.weights.combine.keyword,
+    tuning.weights.combine.semantic
+  );
+  const sexualCombined = combineScores(
+    sexualKeyword.score,
+    sexualSemantic,
+    tuning.weights.combine.keyword,
+    tuning.weights.combine.semantic
+  );
 
   return {
     scores: {
@@ -144,7 +128,12 @@ export function scoreLocallyWithDebug(message: string, embedding: number[]): { s
   };
 }
 
-function scoreCategory(text: string, patterns: RegExp[], weight: number, repetitionBoost: number): {
+function scoreCategory(
+  text: string,
+  patterns: RegExp[],
+  weight: number,
+  repetitionBoost: number
+): {
   score: number;
   matchCount: number;
   matchedPatterns: string[];
@@ -169,8 +158,13 @@ function scoreCategory(text: string, patterns: RegExp[], weight: number, repetit
   };
 }
 
-function repeatedAbuseBoost(text: string): number {
-  const tokens = text.split(/\s+/).filter((token) => token.length > 2);
+function repeatedAbuseBoost(
+  text: string,
+  minTokenLength: number,
+  minCountPerToken: number,
+  boostValue: number
+): number {
+  const tokens = text.split(/\s+/).filter((token) => token.length >= minTokenLength);
   const counts = new Map<string, number>();
 
   for (const token of tokens) {
@@ -180,19 +174,19 @@ function repeatedAbuseBoost(text: string): number {
 
   let repeated = 0;
   for (const count of counts.values()) {
-    if (count >= 3) {
+    if (count >= minCountPerToken) {
       repeated += 1;
     }
   }
 
-  return repeated > 0 ? 0.2 : 0;
+  return repeated > 0 ? boostValue : 0;
 }
 
-function semanticScore(embedding: number[], seed: number[]): number {
+function semanticScore(embedding: number[], seed: number[], power: number, positiveOnly: boolean): number {
   const profile = expandSeedProfile(seed, embedding.length);
   const similarity = cosineSimilarity(embedding, profile);
-  const positiveSimilarity = Math.max(0, similarity);
-  return clamp01(Math.pow(positiveSimilarity, 0.85));
+  const base = positiveOnly ? Math.max(0, similarity) : (similarity + 1) / 2;
+  return clamp01(Math.pow(base, power));
 }
 
 function cosineSimilarity(a: number[], b: number[]): number {
@@ -220,8 +214,8 @@ function cosineSimilarity(a: number[], b: number[]): number {
   return dot / Math.sqrt(normA * normB);
 }
 
-function combineScores(keyword: number, semantic: number): number {
-  const mixed = 0.82 * keyword + 0.18 * semantic;
+function combineScores(keyword: number, semantic: number, keywordWeight: number, semanticWeight: number): number {
+  const mixed = keywordWeight * keyword + semanticWeight * semantic;
   return clamp01(mixed);
 }
 
@@ -231,19 +225,3 @@ function hasPatternMatch(text: string, patterns: RegExp[]): boolean {
     return pattern.test(text);
   });
 }
-
-// 32-dim seed vectors – expanded at runtime to match the actual embedding dimension
-const HARASSMENT_SEED = [
-  0.39, 0.31, 0.27, 0.16, 0.10, 0.11, 0.08, 0.26, 0.35, 0.28, 0.22, 0.13, 0.10, 0.09, 0.20, 0.30,
-  0.24, 0.18, 0.17, 0.14, 0.16, 0.22, 0.29, 0.25, 0.19, 0.10, 0.08, 0.15, 0.21, 0.27, 0.25, 0.20,
-];
-
-const THREAT_SEED = [
-  0.11, 0.14, 0.20, 0.34, 0.36, 0.31, 0.28, 0.18, 0.16, 0.13, 0.10, 0.22, 0.26, 0.30, 0.35, 0.38,
-  0.33, 0.29, 0.23, 0.19, 0.17, 0.12, 0.09, 0.14, 0.20, 0.24, 0.31, 0.34, 0.30, 0.25, 0.19, 0.16,
-];
-
-const SEXUAL_SEED = [
-  0.16, 0.18, 0.12, 0.08, 0.11, 0.15, 0.24, 0.33, 0.37, 0.34, 0.29, 0.22, 0.17, 0.13, 0.10, 0.09,
-  0.14, 0.20, 0.26, 0.32, 0.36, 0.33, 0.28, 0.21, 0.17, 0.15, 0.18, 0.24, 0.31, 0.35, 0.30, 0.23,
-];

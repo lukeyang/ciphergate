@@ -5,10 +5,12 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { PolicyDebugEntry } from "@/lib/debug-log-store";
 import type { MonitorEntry } from "@/lib/monitor-store";
+import type { getPolicyTuningPaths } from "@/lib/policy-tuning";
 
 type MonitorResponse = {
   entries: MonitorEntry[];
   debugEntries: PolicyDebugEntry[];
+  tuning: ReturnType<typeof getPolicyTuningPaths>;
 };
 
 function formatCategory(entry: MonitorEntry): string {
@@ -21,6 +23,7 @@ function formatCategory(entry: MonitorEntry): string {
 export default function MonitorPage(): JSX.Element {
   const [entries, setEntries] = useState<MonitorEntry[]>([]);
   const [debugEntries, setDebugEntries] = useState<PolicyDebugEntry[]>([]);
+  const [tuning, setTuning] = useState<ReturnType<typeof getPolicyTuningPaths> | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -34,6 +37,7 @@ export default function MonitorPage(): JSX.Element {
       if (mounted) {
         setEntries(payload.entries);
         setDebugEntries(payload.debugEntries);
+        setTuning(payload.tuning);
       }
     }
 
@@ -108,6 +112,7 @@ export default function MonitorPage(): JSX.Element {
           <div className="monitor-policy-tags">
             <span className="tag tag-safe">Secret key: NOT PRESENT</span>
             <span className="tag tag-safe">Plaintext stored: NO</span>
+            <span className="tag">Preset: {tuning?.policyPreset || "default"}</span>
           </div>
         </div>
 

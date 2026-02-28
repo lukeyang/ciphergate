@@ -1,7 +1,16 @@
 steps:
   - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -lc
+      - docker pull ${_POLICY_IMAGE} || true
+  - name: gcr.io/cloud-builders/docker
     args:
       - build
+      - --cache-from
+      - ${_POLICY_IMAGE}
+      - --build-arg
+      - BUILDKIT_INLINE_CACHE=1
       - -f
       - policy-server/Dockerfile
       - -t

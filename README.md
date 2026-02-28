@@ -39,6 +39,12 @@ GEMINI_CHAT_MODEL=models/gemini-2.5-pro
 GEMINI_CHAT_MODEL_FALLBACKS=models/gemini-2.5-flash,models/gemini-1.5-flash
 GEMINI_CHAT_TIMEOUT_MS=7000
 GEMINI_SUPPORT_PROMPT_FILE=prompts/support-agent.system.txt
+POLICY_PRESET=default
+# Optional overrides:
+# POLICY_CONFIG_DIR=config/policy
+# LOCAL_POLICY_CONFIG_PATH=config/policy/local-policy.json
+# POLICY_DECISION_CONFIG_PATH=config/policy/decision-thresholds.json
+# POLICY_SEEDS_CONFIG_PATH=config/policy/category-seeds.json
 ```
 
 Edit `prompts/support-agent.system.txt` to change support-agent persona without touching application code.
@@ -107,7 +113,7 @@ Open:
   - output: decision, category, confidence, decrypted scores, blocked status, optional reply
 
 - `GET /api/monitor`
-  - output: policy event list for monitor dashboard
+  - output: policy event list + debug traces + active tuning config paths
 
 ### SaaS policy server
 
@@ -119,6 +125,28 @@ Open:
 
 - Customer app: `customer-app.Dockerfile`
 - Policy server: `policy-server/Dockerfile`
+
+## Policy tuning files (no code change needed)
+
+All policy tuning is file-driven under `config/policy`:
+
+- `local-policy.json`: regex patterns + local scoring weights
+- `decision-thresholds.json`: ALLOW/BLOCK thresholds
+- `category-seeds.json`: category semantic seed vectors
+- `saas-profile.json`: SaaS encrypted profile weighting
+
+Preset examples are included:
+
+- `config/policy/presets/strict/*`
+- `config/policy/presets/relaxed/*`
+
+Switch preset with:
+
+```bash
+POLICY_PRESET=strict
+```
+
+Both customer app and policy-server read the same preset name at runtime.
 
 ## Cloud Run deployment (one command)
 
@@ -146,6 +174,12 @@ cp .env.deploy.example .env.deploy
 4. Build + deploy `customer-app` with `POLICY_SERVER_URL` wired automatically
 
 After completion, the script prints both Cloud Run URLs.
+
+Build efficiency notes:
+
+- Deploy uses Docker (Cloud Build + Dockerfiles).
+- Cloud Build files pull previous images and use `--cache-from` for layer reuse.
+- Next telemetry is disabled in container builds (`NEXT_TELEMETRY_DISABLED=1`).
 
 `preflight.sh` checks account/project/billing/API/env/key-material readiness and exits non-zero when required conditions are missing.
 

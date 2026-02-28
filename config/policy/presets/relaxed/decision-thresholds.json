@@ -1,0 +1,7 @@
+{
+  "thresholds": {
+    "harassment": 0.82,
+    "threat": 0.78,
+    "sexual": 0.78
+  }
+}

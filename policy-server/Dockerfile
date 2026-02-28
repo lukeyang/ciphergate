@@ -7,6 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY policy-server/app ./app
 COPY policy-server/keys ./keys
+COPY config ./config
 
 EXPOSE 8080
 

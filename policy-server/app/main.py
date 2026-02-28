@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from .models import ScoreRequest, ScoreResponse
-from .profiles import build_profiles
+from .profiles import build_profiles, tuning_metadata
 from .security import load_public_context
 
 PUBLIC_CONTEXT: ts.Context | None = None
@@ -39,6 +39,7 @@ def health() -> dict[str, str]:
         "status": "ok",
         "secret_key": "NOT PRESENT",
         "plaintext_stored": "NO",
+        **tuning_metadata(),
     }
 
 

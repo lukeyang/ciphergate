@@ -1,6 +1,7 @@
 FROM node:20-bookworm-slim AS build
 
 WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -9,6 +10,7 @@ COPY next.config.mjs tsconfig.json next-env.d.ts ./
 COPY src ./src
 COPY scripts ./scripts
 COPY prompts ./prompts
+COPY config ./config
 COPY customer-gateway ./customer-gateway
 COPY policy-server/keys ./policy-server/keys
 
@@ -19,6 +21,7 @@ FROM node:20-bookworm-slim AS runtime
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV PYTHON_BIN=/opt/venv/bin/python
 ENV PATH="/opt/venv/bin:${PATH}"
 
@@ -37,6 +40,7 @@ COPY --from=build /app/.next ./.next
 COPY --from=build /app/next.config.mjs ./next.config.mjs
 COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/prompts ./prompts
+COPY --from=build /app/config ./config
 COPY --from=build /app/customer-gateway ./customer-gateway
 COPY --from=build /app/policy-server/keys ./policy-server/keys
 

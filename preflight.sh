@@ -25,6 +25,7 @@ POLICY_SERVICE_NAME="${POLICY_SERVICE_NAME:-ciphergate-policy-server}"
 CUSTOMER_SERVICE_NAME="${CUSTOMER_SERVICE_NAME:-ciphergate-customer-app}"
 GEMINI_API_KEY="${GEMINI_API_KEY:-}"
 GEMINI_SUPPORT_PROMPT_FILE="${GEMINI_SUPPORT_PROMPT_FILE:-prompts/support-agent.system.txt}"
+POLICY_PRESET="${POLICY_PRESET:-}"
 
 PASS_COUNT=0
 FAIL_COUNT=0
@@ -132,10 +133,23 @@ else
   warn "CKKS key materials missing; deploy.sh will attempt generation via scripts/setup_crypto.sh"
 fi
 
+POLICY_CONFIG_DIR="config/policy"
+EFFECTIVE_POLICY_DIR="${POLICY_CONFIG_DIR}"
+if [[ -n "${POLICY_PRESET}" ]]; then
+  EFFECTIVE_POLICY_DIR="${POLICY_CONFIG_DIR}/presets/${POLICY_PRESET}"
+fi
+
+for required_file in local-policy.json decision-thresholds.json category-seeds.json saas-profile.json; do
+  if [[ -f "${EFFECTIVE_POLICY_DIR}/${required_file}" ]]; then
+    pass "policy config present: ${EFFECTIVE_POLICY_DIR}/${required_file}"
+  else
+    fail "missing policy config: ${EFFECTIVE_POLICY_DIR}/${required_file}"
+  fi
+done
+
 printf '\nSummary: %d PASS, %d WARN, %d FAIL\n' "${PASS_COUNT}" "${WARN_COUNT}" "${FAIL_COUNT}"
 printf 'Region=%s, PolicyService=%s, CustomerService=%s\n' "${REGION}" "${POLICY_SERVICE_NAME}" "${CUSTOMER_SERVICE_NAME}"
 
 if [[ "${FAIL_COUNT}" -gt 0 ]]; then
   exit 1
 fi
-

@@ -1,0 +1,91 @@
+{
+  "patterns": {
+    "harassment": [
+      "idiot",
+      "stupid",
+      "dumb",
+      "moron",
+      "shut up",
+      "f\\*?\\*?k you",
+      "you are useless",
+      "바보",
+      "멍청",
+      "닥쳐",
+      "쓸모없",
+      "욕[을]? 하",
+      "개새|씨발|병신"
+    ],
+    "threat": [
+      "i will hurt",
+      "i will kill",
+      "i[' ]?ll kill",
+      "kill you",
+      "threaten",
+      "i will find you",
+      "watch your back",
+      "pay for this",
+      "retaliate",
+      "destroy your company",
+      "죽여버리",
+      "죽어버리",
+      "죽을래",
+      "죽고싶",
+      "너.*죽",
+      "죽여줄",
+      "가만 안 둬",
+      "해치겠",
+      "찾아가서",
+      "보복하겠"
+    ],
+    "threatCritical": [
+      "i will kill",
+      "i[' ]?ll kill",
+      "kill you",
+      "i will hurt",
+      "죽여버리",
+      "죽어버리",
+      "죽을래",
+      "너.*죽",
+      "해치겠"
+    ],
+    "sexual": [
+      "sex",
+      "nude",
+      "your body",
+      "sleep with me",
+      "explicit",
+      "sexy",
+      "sexual",
+      "섹시",
+      "누드",
+      "야한",
+      "성희롱",
+      "성적",
+      "몸매",
+      "벗[어]",
+      "누드.*보내|보내.*누드",
+      "야한.*사진|사진.*야한"
+    ]
+  },
+  "weights": {
+    "keyword": {
+      "harassment": 0.9,
+      "threat": 1.1,
+      "sexual": 1.05
+    },
+    "combine": {
+      "keyword": 0.9,
+      "semantic": 0.1
+    },
+    "threatCriticalBoost": 0.42,
+    "repeatedAbuseBoost": 0.28
+  },
+  "semantic": {
+    "power": 0.85,
+    "positiveOnly": true
+  },
+  "repetition": {
+    "minTokenLength": 3,
+    "minCountPerToken": 3
+  }
+}

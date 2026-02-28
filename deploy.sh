@@ -51,6 +51,7 @@ GEMINI_CHAT_MODEL="${GEMINI_CHAT_MODEL:-models/gemini-2.5-pro}"
 GEMINI_CHAT_MODEL_FALLBACKS="${GEMINI_CHAT_MODEL_FALLBACKS:-models/gemini-2.5-flash,models/gemini-1.5-flash}"
 GEMINI_CHAT_TIMEOUT_MS="${GEMINI_CHAT_TIMEOUT_MS:-7000}"
 GEMINI_SUPPORT_PROMPT_FILE="${GEMINI_SUPPORT_PROMPT_FILE:-prompts/support-agent.system.txt}"
+POLICY_PRESET="${POLICY_PRESET:-}"
 
 if [[ -z "${PROJECT_ID}" ]]; then
   echo "ERROR: GCP project is not set. Export GCP_PROJECT_ID or run: gcloud config set project <PROJECT_ID>" >&2
@@ -135,6 +136,11 @@ gcloud builds submit \
   .
 
 echo "[deploy] Deploying policy-server to Cloud Run ..."
+POLICY_ENV_VARS="^@^CKKS_PUBLIC_CONTEXT_PATH=/app/keys/public_context.seal@"
+if [[ -n "${POLICY_PRESET}" ]]; then
+  POLICY_ENV_VARS="${POLICY_ENV_VARS}POLICY_PRESET=${POLICY_PRESET}@"
+fi
+
 gcloud run deploy "${POLICY_SERVICE_NAME}" \
   --project "${PROJECT_ID}" \
   --region "${REGION}" \
@@ -144,7 +150,7 @@ gcloud run deploy "${POLICY_SERVICE_NAME}" \
   --port 8080 \
   --cpu 1 \
   --memory 1Gi \
-  --set-env-vars "CKKS_PUBLIC_CONTEXT_PATH=/app/keys/public_context.seal"
+  --set-env-vars "${POLICY_ENV_VARS}"
 
 POLICY_URL="$(gcloud run services describe "${POLICY_SERVICE_NAME}" \
   --project "${PROJECT_ID}" \
@@ -163,6 +169,9 @@ fi
 
 POLICY_SERVER_URL="${DEPLOY_POLICY_SERVER_URL:-${POLICY_URL}}"
 CUSTOMER_ENV_VARS="^@^POLICY_SERVER_URL=${POLICY_SERVER_URL}@GEMINI_API_KEY=${GEMINI_API_KEY}@GEMINI_EMBED_MODEL=${GEMINI_EMBED_MODEL}@GEMINI_CHAT_MODEL=${GEMINI_CHAT_MODEL}@GEMINI_CHAT_MODEL_FALLBACKS=${GEMINI_CHAT_MODEL_FALLBACKS}@GEMINI_CHAT_TIMEOUT_MS=${GEMINI_CHAT_TIMEOUT_MS}@GEMINI_SUPPORT_PROMPT_FILE=${GEMINI_SUPPORT_PROMPT_FILE}@PYTHON_BIN=/opt/venv/bin/python@NODE_ENV=production@"
+if [[ -n "${POLICY_PRESET}" ]]; then
+  CUSTOMER_ENV_VARS="${CUSTOMER_ENV_VARS}POLICY_PRESET=${POLICY_PRESET}@"
+fi
 
 echo "[deploy] Building customer-app image ..."
 gcloud builds submit \
