@@ -47,9 +47,14 @@ _SIGNAL_WEIGHT = 0.65
 
 def _expand_seed(seed: list[float], embedding_dim: int) -> list[float]:
     """Tile / zero-pad a short seed vector to *embedding_dim* and L2-normalise."""
+    if embedding_dim <= 0:
+        return []
+    if not seed:
+        return [0.0] * embedding_dim
+
     expanded = [0.0] * embedding_dim
-    for i, val in enumerate(seed):
-        expanded[i % embedding_dim] += val
+    for i in range(embedding_dim):
+        expanded[i] = seed[i % len(seed)]
     # L2-normalise so dot-product ≈ cosine contribution
     norm = math.sqrt(sum(v * v for v in expanded)) or 1.0
     return [v / norm for v in expanded]

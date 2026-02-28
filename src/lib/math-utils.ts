@@ -35,9 +35,16 @@ export function clipEmbedding(value: number): number {
  * Mirrors the approach used on the SaaS policy-server side.
  */
 export function expandSeedProfile(seed: number[], targetDim: number): number[] {
+  if (targetDim <= 0) {
+    return [];
+  }
+  if (seed.length === 0) {
+    return new Array<number>(targetDim).fill(0);
+  }
+
   const expanded = new Array<number>(targetDim).fill(0);
-  for (let i = 0; i < seed.length; i += 1) {
-    expanded[i % targetDim] += seed[i];
+  for (let i = 0; i < targetDim; i += 1) {
+    expanded[i] = seed[i % seed.length];
   }
   const norm = Math.sqrt(expanded.reduce((sum, v) => sum + v * v, 0)) || 1;
   return expanded.map((v) => v / norm);

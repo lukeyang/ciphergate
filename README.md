@@ -34,7 +34,7 @@ Create `.env.local` at repo root:
 GEMINI_API_KEY=your_gemini_api_key
 POLICY_SERVER_URL=http://127.0.0.1:8001
 PYTHON_BIN=.venv/bin/python
-GEMINI_EMBED_MODEL=models/text-embedding-004
+GEMINI_EMBED_MODEL=models/gemini-embedding-001
 GEMINI_CHAT_MODEL=models/gemini-2.5-pro
 ```
 

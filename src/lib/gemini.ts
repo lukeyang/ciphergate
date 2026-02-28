@@ -1,4 +1,4 @@
-const EMBED_MODEL = process.env.GEMINI_EMBED_MODEL ?? "models/text-embedding-004";
+const EMBED_MODEL = process.env.GEMINI_EMBED_MODEL ?? "models/gemini-embedding-001";
 const CHAT_MODEL = process.env.GEMINI_CHAT_MODEL ?? "models/gemini-2.5-pro";
 
 export async function embedTextWithGemini(text: string): Promise<number[]> {
@@ -87,5 +87,4 @@ export async function chatWithGemini(message: string): Promise<string> {
   const text = payload.candidates?.[0]?.content?.parts?.[0]?.text;
   return text?.trim() || "Support reply (fallback): I can help with account, billing, and product questions.";
 }
-
 

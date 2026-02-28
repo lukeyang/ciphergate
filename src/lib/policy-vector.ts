@@ -2,7 +2,7 @@ import { clamp01, clipEmbedding } from "./math-utils";
 import { PolicyScores } from "./types";
 
 /**
- * Gemini text-embedding-004 produces 768-dim vectors.
+ * Current Gemini embedding models used in this project are 768-dim.
  * We use the full embedding so no information is lost.
  */
 const BASE_DIM = 768;
