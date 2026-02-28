@@ -181,6 +181,7 @@ export default function MonitorPage(): JSX.Element {
               <thead>
                 <tr>
                   <th>Time</th>
+                  <th>Stage</th>
                   <th>Session</th>
                   <th>Mode</th>
                   <th>Message</th>
@@ -195,6 +196,7 @@ export default function MonitorPage(): JSX.Element {
                 {recentDebug.map((entry) => (
                   <tr key={entry.id}>
                     <td className="mono">{new Date(entry.createdAt).toLocaleTimeString()}</td>
+                    <td>{entry.stage ?? "policy"}</td>
                     <td className="mono">{entry.sessionId.slice(0, 8)}…</td>
                     <td>{entry.inputMode}</td>
                     <td style={{ maxWidth: "220px", wordBreak: "break-word" }}>{entry.message}</td>

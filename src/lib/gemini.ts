@@ -2,8 +2,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 const EMBED_MODEL = process.env.GEMINI_EMBED_MODEL ?? "models/gemini-embedding-001";
-const CHAT_MODEL = process.env.GEMINI_CHAT_MODEL ?? "models/gemini-2.5-pro";
-const CHAT_MODEL_FALLBACKS = (process.env.GEMINI_CHAT_MODEL_FALLBACKS ?? "models/gemini-2.5-flash,models/gemini-1.5-flash")
+const CHAT_MODEL = process.env.GEMINI_CHAT_MODEL ?? "models/gemini-2.5-flash";
+const CHAT_MODEL_FALLBACKS = (process.env.GEMINI_CHAT_MODEL_FALLBACKS ?? "models/gemini-2.5-pro,models/gemini-1.5-flash")
   .split(",")
   .map((model) => model.trim())
   .filter((model) => model.length > 0);

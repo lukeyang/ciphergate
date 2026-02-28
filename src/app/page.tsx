@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
-import type { InputMode, PolicyCheckResponse } from "@/lib/types";
+import type { ChatReplyResponse, InputMode, PolicyCheckResponse, PolicyTimings } from "@/lib/types";
 
 type ChatItem = {
   id: string;
@@ -84,7 +83,9 @@ export default function HomePage(): JSX.Element {
   const [voiceMode, setVoiceMode] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [voiceTranscript, setVoiceTranscript] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isPolicySubmitting, setIsPolicySubmitting] = useState<boolean>(false);
+  const [isReplyPending, setIsReplyPending] = useState<boolean>(false);
+  const [lastPolicyTimings, setLastPolicyTimings] = useState<PolicyTimings | null>(null);
   const [chat, setChat] = useState<ChatItem[]>([
     {
       id: "welcome",
@@ -110,17 +111,17 @@ export default function HomePage(): JSX.Element {
       return;
     }
 
-    if (!trimmed || blocked || isSubmitting) {
+    if (!trimmed || blocked || isPolicySubmitting) {
       return;
     }
 
-    setIsSubmitting(true);
+    setIsPolicySubmitting(true);
 
     if (source === "text") {
       setMessage("");
     }
 
-    setStatus("Encrypting embedding and evaluating policy...");
+    setStatus("Securing message: encrypting and running policy check...");
     setChat((previous) => [
       ...previous,
       {
@@ -151,38 +152,114 @@ export default function HomePage(): JSX.Element {
       }
 
       const payload = (await response.json()) as PolicyCheckResponse;
+      setLastPolicyTimings(payload.policyTimings);
       const decisionLine = `${payload.decision} · ${payload.category ?? "none"} · ${payload.confidence.toFixed(3)}`;
-      const replyText = payload.reply ?? "No response generated.";
+      const policyLatencyLine = formatPolicyLatency(payload.policyTimings);
 
-      setChat((previous) => [
-        ...previous,
-        {
-          id: crypto.randomUUID(),
-          role: payload.decision === "BLOCK" ? "system" : "model",
-          text: `${decisionLine}\n${replyText}`,
-          decisionLine,
-          replyText,
-        },
-      ]);
+      if (payload.decision === "BLOCK" || payload.blocked) {
+        const replyText = payload.reply ?? "Session blocked by policy.";
+        setChat((previous) => [
+          ...previous,
+          {
+            id: crypto.randomUUID(),
+            role: "system",
+            text: `${decisionLine}\n${replyText}`,
+            decisionLine,
+            replyText,
+          },
+        ]);
 
-      setStatus(
-        `Scores: harassment=${payload.scores.harassment.toFixed(3)}, threat=${payload.scores.threat.toFixed(3)}, sexual=${payload.scores.sexual.toFixed(3)}`
-      );
-
-      if (payload.blocked) {
+        setStatus(`${policyLatencyLine} · Session blocked`);
         setBlocked(true);
         if (recognitionRef.current) {
           recognitionRef.current.stop();
         }
         setIsListening(false);
         setVoiceMode(false);
+        return;
+      }
+
+      const allowToken = payload.allowToken;
+      if (!allowToken) {
+        setStatus("Policy passed, but chat token is missing.");
+        setChat((previous) => [
+          ...previous,
+          {
+            id: crypto.randomUUID(),
+            role: "system",
+            text: "Policy passed but chat reply could not be started.",
+          },
+        ]);
+        return;
+      }
+
+      const pendingReplyId = crypto.randomUUID();
+      setChat((previous) => [
+        ...previous,
+        {
+          id: pendingReplyId,
+          role: "model",
+          text: `${decisionLine}\nGenerating support reply...`,
+          decisionLine,
+          replyText: "Generating support reply...",
+        },
+      ]);
+      setStatus(`${policyLatencyLine} · Policy ALLOW, generating support reply...`);
+
+      setIsPolicySubmitting(false);
+      setIsReplyPending(true);
+
+      try {
+        const chatResponse = await fetch("/api/chat-reply", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId,
+            message: trimmed,
+            allowToken,
+            inputMode: source,
+          }),
+        });
+
+        if (!chatResponse.ok) {
+          const reason = await chatResponse.text().catch(() => "chat reply failed");
+          setChat((previous) =>
+            previous.map((item) =>
+              item.id === pendingReplyId
+                ? {
+                    ...item,
+                    text: `${decisionLine}\nSupport reply failed: ${reason}`,
+                    replyText: `Support reply failed: ${reason}`,
+                  }
+                : item
+            )
+          );
+          setStatus(`${policyLatencyLine} · Reply generation failed`);
+          return;
+        }
+
+        const chatPayload = (await chatResponse.json()) as ChatReplyResponse;
+        setChat((previous) =>
+          previous.map((item) =>
+            item.id === pendingReplyId
+              ? {
+                  ...item,
+                  text: `${decisionLine}\n${chatPayload.reply}`,
+                  replyText: chatPayload.reply,
+                }
+              : item
+          )
+        );
+        setStatus(`${policyLatencyLine} · Reply ${chatPayload.chatMs} ms`);
+      } finally {
+        setIsReplyPending(false);
       }
     } catch {
       setStatus("Policy check failed");
     } finally {
-      setIsSubmitting(false);
+      setIsPolicySubmitting(false);
     }
-  }, [blocked, isSubmitting, sessionId]);
+  }, [blocked, isPolicySubmitting, sessionId]);
 
   useEffect(() => {
     const trimmed = message.trim();
@@ -197,13 +274,13 @@ export default function HomePage(): JSX.Element {
       return;
     }
 
-    if (!autoDispatchArmedRef.current || !sessionId || blocked || isSubmitting) {
+    if (!autoDispatchArmedRef.current || !sessionId || blocked || isPolicySubmitting || isReplyPending) {
       return;
     }
 
     autoDispatchArmedRef.current = false;
     void sendMessage(trimmed, "text");
-  }, [blocked, isSubmitting, message, sendMessage, sessionId]);
+  }, [blocked, isPolicySubmitting, isReplyPending, message, sendMessage, sessionId]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -306,7 +383,7 @@ export default function HomePage(): JSX.Element {
           </div>
         </div>
         <Link className="nav-pill" href="/monitor">
-          SOC Monitor →
+          Policy Monitor →
         </Link>
       </header>
 
@@ -317,7 +394,12 @@ export default function HomePage(): JSX.Element {
         </article>
         <article className="telemetry-card">
           <p className="telemetry-label">Encryption</p>
-          <p className="telemetry-value">CKKS HE</p>
+          <p className="telemetry-value">
+            {lastPolicyTimings ? `Encrypt ${lastPolicyTimings.encryptMs} ms` : "CKKS HE"}
+          </p>
+          {lastPolicyTimings ? (
+            <p className="telemetry-sub mono">HE {lastPolicyTimings.saasScoreMs} ms</p>
+          ) : null}
         </article>
         <article className="telemetry-card">
           <p className="telemetry-label">Voice</p>
@@ -385,14 +467,14 @@ export default function HomePage(): JSX.Element {
               placeholder={blocked ? "Session terminated" : "Type a message…"}
               value={message}
               onChange={(event) => setMessage(event.target.value)}
-              disabled={blocked || isSubmitting || !sessionId}
+              disabled={blocked || isPolicySubmitting || !sessionId}
             />
             <button
               className="command-btn primary"
               type="submit"
-              disabled={blocked || isSubmitting || !sessionId || message.trim().length === 0}
+              disabled={blocked || isPolicySubmitting || !sessionId || message.trim().length === 0}
             >
-              {isSubmitting ? "Encrypting…" : "Send"}
+              {isPolicySubmitting ? "Encrypting…" : isReplyPending ? "Replying…" : "Send"}
             </button>
           </form>
           <div className="controls-row">
@@ -419,7 +501,7 @@ export default function HomePage(): JSX.Element {
 
         <div className="status-bar">
           <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
-            <span className={`status-dot ${blocked ? "blocked" : isSubmitting ? "processing" : "online"}`} />
+            <span className={`status-dot ${blocked ? "blocked" : isPolicySubmitting || isReplyPending ? "processing" : "online"}`} />
             <p className="status-text">{status}</p>
           </div>
           <p className="status-text" style={{ color: "var(--text-tertiary)" }}>
@@ -458,4 +540,8 @@ export default function HomePage(): JSX.Element {
 
 function endsWithSentenceBoundary(text: string): boolean {
   return /[.!?。！？…]$/.test(text.trim());
+}
+
+function formatPolicyLatency(timings: PolicyTimings): string {
+  return `Encryption ${timings.encryptMs} ms · HE score ${timings.saasScoreMs} ms · Policy total ${timings.totalPolicyMs} ms`;
 }

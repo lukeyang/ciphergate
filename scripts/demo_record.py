@@ -30,7 +30,7 @@ TTS_VOICE_KR = "Kore"   # Korean voice (Kore supports Korean)
 VIEWPORT = {"width": 1280, "height": 800}
 VIDEO_SIZE = {"width": 1280, "height": 800}
 
-FALLBACK_API_KEY = "REDACTED_GEMINI_API_KEY"
+# Additional API keys — loaded only from environment variables.
 
 
 def load_env():
@@ -44,14 +44,42 @@ def load_env():
                 os.environ.setdefault(k.strip(), v.strip())
 
 
+def _build_tts_prompt(text: str) -> str:
+    """Wrap narration text in a prompt that clearly signals audio-only output."""
+    return (
+        "Read the following narration aloud as clear, professional voice-over audio.\n"
+        "Deliver at a measured pace with confident, neutral tone.\n"
+        "Do not add, omit, paraphrase, or translate any words.\n"
+        "\n"
+        f"Narration:\n{text}"
+    )
+
+
+def _collect_api_keys() -> list[str]:
+    """Collect all API keys in priority order (dedup, no empty strings)."""
+    seen: set[str] = set()
+    keys: list[str] = []
+    candidates = [
+        os.environ.get("GEMINI_API_KEY", "").strip(),
+        os.environ.get("GEMINI_API_KEY_FALLBACK", "").strip(),
+        *[k.strip() for k in os.environ.get("GEMINI_API_KEYS", "").split(",")],
+    ]
+    for k in candidates:
+        if k and k not in seen:
+            seen.add(k)
+            keys.append(k)
+    return keys
+
+
 def _tts_request(text: str, voice: str, api_key: str) -> bytes:
     """Send a single TTS request and return raw audio bytes."""
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/models/"
         f"{TTS_MODEL}:generateContent?key={api_key}"
     )
+    prompt = _build_tts_prompt(text)
     body = json.dumps({
-        "contents": [{"parts": [{"text": text}]}],
+        "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
             "responseModalities": ["AUDIO"],
             "speechConfig": {
@@ -64,15 +92,31 @@ def _tts_request(text: str, voice: str, api_key: str) -> bytes:
     req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
     resp = urllib.request.urlopen(req, timeout=60)
     data = json.loads(resp.read())
-    audio_b64 = data["candidates"][0]["content"]["parts"][0]["inlineData"]["data"]
-    return base64.b64decode(audio_b64)
+    part = data["candidates"][0]["content"]["parts"][0]["inlineData"]
+    audio_bytes = base64.b64decode(part["data"])
+    mime = part.get("mimeType", "audio/wav")
+    # If raw PCM (L16), convert to WAV via ffmpeg
+    if "L16" in mime or "pcm" in mime.lower():
+        rate_match = __import__("re").search(r"rate=(\d+)", mime)
+        sample_rate = rate_match.group(1) if rate_match else "24000"
+        return _pcm_to_wav(audio_bytes, sample_rate)
+    return audio_bytes
+
+
+def _pcm_to_wav(pcm_bytes: bytes, sample_rate: str) -> bytes:
+    """Convert raw PCM s16le bytes to WAV via ffmpeg."""
+    result = subprocess.run(
+        ["ffmpeg", "-y", "-f", "s16le", "-ar", sample_rate, "-ac", "1",
+         "-i", "pipe:0", "-f", "wav", "pipe:1"],
+        input=pcm_bytes, capture_output=True, check=True
+    )
+    return result.stdout
 
 
 def gemini_tts(text: str, voice: str, out_path: str, max_retries: int = 5) -> float:
     """Generate TTS audio via Gemini API with key fallback. Returns duration in seconds.
     On 429, immediately switches to next key (no retry on same key)."""
-    primary_key = os.environ["GEMINI_API_KEY"]
-    keys = [primary_key, FALLBACK_API_KEY]
+    keys = _collect_api_keys()
 
     for key_idx, api_key in enumerate(keys):
         key_label = "primary" if key_idx == 0 else "fallback"
@@ -241,30 +285,52 @@ def _slow_scroll(page, target_y: int, duration: float):
 
 
 def merge_audio_video(tts_clips: list, video_path: str, output_path: str):
-    """Merge TTS audio clips with video using ffmpeg."""
-    # Concatenate all audio clips with silence gaps
-    # Build an ffmpeg filter complex
-    audio_inputs = []
-    filter_parts = []
-    input_idx = 0
+    """Merge TTS audio clips with video using ffmpeg.
 
-    # First, create silence clips for clips without audio
-    for i, clip in enumerate(tts_clips):
-        if clip["path"]:
-            audio_inputs.extend(["-i", clip["path"]])
-            filter_parts.append(f"[{input_idx + 1}:a]aresample=24000[a{i}]")
-            input_idx += 1
-        else:
-            dur = clip["duration"]
-            filter_parts.append(
-                f"anullsrc=r=24000:cl=mono:d={dur}[a{i}]"
-            )
+    Strategy: compute each clip's start offset (ms) from the accumulated
+    scene durations, then use adelay + amix to overlay all clips onto a
+    single audio track aligned with the video timeline.
+    """
+    print(f"\n  Merging → {output_path}")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    # Concatenate all audio
-    n = len(tts_clips)
-    concat_inputs = "".join(f"[a{i}]" for i in range(n))
-    filter_parts.append(f"{concat_inputs}concat=n={n}:v=0:a=1[audio]")
+    # Step 1: collect clips that actually have audio + their start offsets
+    audio_clips: list[tuple[str, int]] = []  # (path, start_ms)
+    cursor_ms = 0
+    for clip in tts_clips:
+        dur_ms = int(clip["duration"] * 1000)
+        if clip["path"] and os.path.exists(clip["path"]):
+            audio_clips.append((clip["path"], cursor_ms))
+        cursor_ms += dur_ms
 
+    if not audio_clips:
+        # No audio at all — just re-encode video
+        cmd = [
+            "ffmpeg", "-y", "-i", video_path,
+            "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+            "-an", output_path
+        ]
+        _run_ffmpeg(cmd)
+        return
+
+    # Step 2: build filter_complex with adelay for each clip
+    # [1:a]aresample=24000,aformat=sample_fmts=fltp:channel_layouts=mono,adelay=<ms>:all=1[a0]
+    # then amix=inputs=N:normalize=0[audio]
+    audio_inputs: list[str] = []
+    filter_parts: list[str] = []
+
+    for idx, (path, start_ms) in enumerate(audio_clips):
+        audio_inputs += ["-i", path]
+        in_ref = idx + 1  # input 0 is the video
+        filter_parts.append(
+            f"[{in_ref}:a]aresample=24000,"
+            f"aformat=sample_fmts=fltp:channel_layouts=mono,"
+            f"adelay={start_ms}:all=1[a{idx}]"
+        )
+
+    n = len(audio_clips)
+    mix_inputs = "".join(f"[a{i}]" for i in range(n))
+    filter_parts.append(f"{mix_inputs}amix=inputs={n}:normalize=0[audio]")
     filter_complex = ";".join(filter_parts)
 
     cmd = [
@@ -277,12 +343,19 @@ def merge_audio_video(tts_clips: list, video_path: str, output_path: str):
         "-c:v", "libx264", "-preset", "fast", "-crf", "23",
         "-c:a", "aac", "-b:a", "128k",
         "-shortest",
-        output_path
+        output_path,
     ]
+    _run_ffmpeg(cmd)
 
-    print(f"\n  Merging → {output_path}")
-    subprocess.run(cmd, check=True, capture_output=True)
-    print(f"  Done! {output_path}")
+
+def _run_ffmpeg(cmd: list[str]):
+    """Run ffmpeg, printing stderr on failure."""
+    result = subprocess.run(cmd, capture_output=True)
+    if result.returncode != 0:
+        print("\n  [ffmpeg stderr]")
+        print(result.stderr.decode(errors="replace")[-3000:])
+        raise subprocess.CalledProcessError(result.returncode, cmd)
+    print(f"  Done! → {cmd[-1]}")
 
 
 def main():

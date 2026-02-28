@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "CipherGate — 제로 지식 AI 정책 적용 엔진",
+  title: "CipherGate — 고객 센터를 위한 제로 지식 정책 집행 엔진",
   description:
-    "AI 고객 지원 시스템에서 대화 내용을 SaaS 제공자에게 노출하지 않고 욕설·위협·성희롱을 탐지합니다. Google Gemini와 동형 암호 기술 기반.",
+    "고객 지원 상담원을 욕설·위협·성희롱으로부터 보호합니다. SaaS 제공자는 고객 대화를 단 한 마디도 읽지 않습니다. Google Gemini 임베딩과 동형 암호 기술 기반.",
 };
 
 export default function AboutKrPage() {
@@ -56,19 +56,22 @@ export default function AboutKrPage() {
       <section className="about-hero">
         <div className="hero-eyebrow">
           <span className="gem-dot" aria-hidden="true" />
-          Google Gemini 해커톤 &mdash; Gemini API 활용 프로젝트
+          Google DeepMind 해커톤 &mdash; Gemini API 활용 프로젝트
         </div>
 
         <h1>
-          대화 내용을 보지 않고도{" "}
-          <span className="hl">정책을 집행하는 AI 고객 지원.</span>
+          상담원을 보호하는 SOC,{" "}
+          <span className="hl">대화를 읽지 않고.</span>
         </h1>
 
         <p className="hero-sub">
-          CipherGate는 Google Gemini 임베딩과 동형 암호화를 결합해,
-          정책 서버가 욕설·위협·성희롱을 탐지할 수 있습니다.
-          고객의 대화 원문은{" "}
-          <em>디바이스 밖으로 절대 전송되지 않습니다.</em>
+          고객 지원 상담원은 매일 욕설·위협·성희롱에 노출됩니다.
+          이는 감정 노동과 법적 리스크로 이어집니다.
+          CipherGate는{" "}
+          <strong>보안 운영 센터(SOC, Security Operations Center)</strong>{" "}
+          SaaS로, Google Gemini 임베딩과 동형 암호화를 활용해{" "}
+          <em>SaaS 측 제공자가 평문을 단 한 마디도 보지 못하도록</em>{" "}
+          메시지를 선별합니다.
         </p>
 
         <div className="hero-actions">
@@ -76,7 +79,7 @@ export default function AboutKrPage() {
             ▶&nbsp; 라이브 데모 체험
           </Link>
           <Link className="btn-ghost" href="/monitor">
-            SOC 모니터 →
+            SOC 대시보드 →
           </Link>
         </div>
 
@@ -106,34 +109,35 @@ export default function AboutKrPage() {
       <section className="about-section" id="problem">
         <p className="section-label">문제 정의</p>
         <h2 className="section-title">
-          현재의 AI 고객 지원은 개인정보 리스크 덩어리
+          고객센터 상담원은 지금 무방비 상태입니다
         </h2>
         <p className="section-body">
-          AI 고객 지원을 도입한 모든 기업은 같은 딜레마에 놓입니다. SaaS 벤더가
-          정책을 집행하려면 고객 대화를 처리해야 하고, 그 순간 벤더는 모든 내용을
-          읽을 수 있게 됩니다. 규제 기관, 고객, 그리고 대형 구매자들은 이 타협을
-          더 이상 수용하지 않습니다.
+          콜센터 상담원들은 매일 욕설·위협·성희롱 메시지에 노출됩니다.
+          이는 심각한 감정 노동과 높은 이직률, 법적 분쟁을 초래합니다.
+          <strong>GeminiMart</strong>와 같은 기업은 메시지가 상담원에게
+          전달되기 전에 선별할 수 단이 필요하지만, 현재 SaaS 필터링 툴은
+          대화 원문을 제공사 서버로 전송해야 합니다.
         </p>
 
         <div className="problem-grid">
           <div className="problem-card bad">
             <p className="problem-card-tag">현재 방식</p>
-            <h3>모든 벤더에 평문이 흘러들어간다</h3>
+            <h3>상담원이 모든 욕설 메시지를 직접 접합니다</h3>
             <p>
-              AI 모더레이션, 독성 필터, 지원 플랫폼 모두 고객 메시지 원문을
-              수신합니다. 단 한 번의 침해 또는 내부자 사고만으로 민감한 대화
-              전체가 유출됩니다. 컴플라이언스 감사는 악몽이 되고, 신뢰는
-              무너집니다.
+              모든 위협·욕설·성적 표현이 거르지 않고 상담원에게 전달되거나,
+              SaaS 벤더가 모든 내용을 읽을 수 있는 채널을 통해 필터링됩니다.
+              단 한 번의 침해나 내부자 사고만으로 민감한 대화 전체가
+              유출됩니다.
             </p>
           </div>
           <div className="problem-card good">
             <p className="problem-card-tag">CipherGate 방식</p>
-            <h3>암호문 상태로 정책을 집행한다</h3>
+            <h3>암호문으로 선별, 상담원 보호</h3>
             <p>
-              고객 메시지는 Gemini를 통해 로컬에서 시맨틱 임베딩으로 변환된 후
-              CKKS 동형 암호화로 암호화됩니다. 암호문만 정책 서버로 전송되고,
-              서버가 스코어를 계산하면 클라이언트가 판단합니다. 평문은 그 자리에
-              그대로 있습니다.
+              메시지는 Gemini로 로컬에서 임베딩된 후 CKKS 동형 암호화로
+              암호화되어 CipherGate에 전송됩니다. 서버는 암호문 상태로 점수를
+              계산합니다. 상담원은 클린한 메시지만 받습니다. CipherGate는
+              평문을 읽지 못합니다.
             </p>
           </div>
         </div>
@@ -220,9 +224,9 @@ export default function AboutKrPage() {
             </h2>
             <p className="section-body">
               CipherGate는 Gemini의 최첨단 임베딩 모델 없이는 존재할 수 없습니다.
-              고차원 시맨틱 벡터가 있어야 암호화된 도메인에서 정책 탐지가 작동합니다.
-              품질 낮은 임베딩은 CKKS 노이즈에 파묻힙니다. Gemini가 수학적
-              실현 가능성을 만들어줍니다.
+              고차원 시맨틱 벡터는 욕설 의도와 어조를 CKKS 노이즈를 견딜 만큼
+              충실하게 포착합니다. 품질 낮은 임베딩은 암호화 도메인에서 작동하지
+              않습니다. Gemini가 수학적 실현 가능성을 만들어줍니다.
             </p>
           </div>
 
@@ -357,11 +361,13 @@ export default function AboutKrPage() {
       {/* ── Impact stats ── */}
       <section className="about-section" id="impact">
         <p className="section-label">임팩트</p>
-        <h2 className="section-title">프라이버시 우선 엔터프라이즈를 위해</h2>
+        <h2 className="section-title">상담원과 프라이버시, 모두를 위해</h2>
         <p className="section-body">
-          AI 고객 지원은 수십억 달러 규모의 시장입니다. GDPR·CCPA·개인정보보호법
-          등 규제 강화는 제로 지식 SaaS에 대한 구조적 수요를 만들고 있습니다.
-          CipherGate는 새로운 카테고리를 정의하는 솔루션입니다.
+          전 세계 콜센터에는 수백만 명의 상담원이 근무합니다.
+          온라인 부제로부터 상담원을 보호하면서도,
+          GDPR·CCPA·개인정보보호법 등 규제를 충족하고
+          SaaS 벤더에 평문이 유출되지 않아야 합니다.
+          CipherGate는 두 가지를 동시에 해결합니다.
         </p>
 
         <div className="impact-grid">
@@ -402,18 +408,18 @@ export default function AboutKrPage() {
             ▶&nbsp; 라이브 데모 열기
           </Link>
           <Link className="btn-ghost" href="/monitor">
-            SOC 모니터 →
+            SOC 대시보드 →
           </Link>
         </div>
       </section>
 
       {/* ── Footer ── */}
       <footer className="about-footer">
-        <span>CipherGate &mdash; Google Gemini 해커톤 데모 &mdash; 2025</span>
+        <span>CipherGate &mdash; Google DeepMind 해커톤 데모 &mdash; 2026</span>
         <span>
           <a href="/">채팅 데모</a>
           &nbsp;&middot;&nbsp;
-          <a href="/monitor">SOC 모니터</a>
+          <a href="/monitor">SOC 대시보드</a>
           &nbsp;&middot;&nbsp;
           <a href="/about">English</a>
           &nbsp;&middot;&nbsp;

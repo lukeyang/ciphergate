@@ -2,11 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 
 import type { LocalPolicyDebug } from "./local-policy";
-import type { InputMode, PolicyCategory, PolicyDecision, PolicyScores } from "./types";
+import type { InputMode, PolicyCategory, PolicyDecision, PolicyScores, PolicyTimings } from "./types";
 
 export type PolicyDebugEntry = {
   id: string;
   createdAt: string;
+  stage?: "policy" | "chat";
   sessionId: string;
   inputMode: InputMode;
   message: string;
@@ -17,6 +18,8 @@ export type PolicyDebugEntry = {
   decision?: PolicyDecision;
   category?: PolicyCategory | null;
   confidence?: number;
+  policyTimings?: PolicyTimings;
+  chatMs?: number;
   reply?: string | null;
   chatDiagnostics?: string[];
   processingMs?: number;

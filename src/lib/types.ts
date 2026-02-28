@@ -9,6 +9,17 @@ export type PolicyScores = {
 export type PolicyDecision = "ALLOW" | "BLOCK";
 export type InputMode = "text" | "voice";
 
+export type PolicyTimings = {
+  cryptoInitMs: number;
+  embedMs: number;
+  localScoreMs: number;
+  encryptMs: number;
+  saasScoreMs: number;
+  decryptMs: number;
+  evaluateMs: number;
+  totalPolicyMs: number;
+};
+
 export type PolicyResult = {
   decision: PolicyDecision;
   category: PolicyCategory | null;
@@ -24,4 +35,12 @@ export type PolicyCheckResponse = {
   scores: PolicyScores;
   blocked: boolean;
   reply: string | null;
+  allowToken: string | null;
+  policyTimings: PolicyTimings;
+};
+
+export type ChatReplyResponse = {
+  sessionId: string;
+  reply: string;
+  chatMs: number;
 };

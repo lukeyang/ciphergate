@@ -9,5 +9,6 @@ customer-gateway/keys/*.seal
 policy-server/keys/*.seal
 customer-gateway/monitor/events.json
 customer-gateway/monitor/debug-events.json
+customer-gateway/runtime/*.json
 __pycache__/
 *.pyc

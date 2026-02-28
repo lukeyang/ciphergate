@@ -279,6 +279,12 @@ a {
   text-overflow: ellipsis;
 }
 
+.telemetry-sub {
+  margin: 0.2rem 0 0;
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+}
+
 /* Chat panel */
 
 .customer-panel {

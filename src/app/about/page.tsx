@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "CipherGate — Zero-Knowledge AI Policy Enforcement",
+  title: "CipherGate — Zero-Knowledge Policy Enforcement for Customer Centers",
   description:
-    "Detect abusive messages in AI-powered customer support without the SaaS provider ever seeing plaintext. Powered by Google Gemini and homomorphic encryption.",
+    "Protect human customer support agents from harassment, threats, and sexual misconduct — without the SaaS provider ever reading a single message. Powered by Google Gemini embeddings and homomorphic encryption.",
 };
 
 export default function AboutPage() {
@@ -56,19 +56,22 @@ export default function AboutPage() {
       <section className="about-hero">
         <div className="hero-eyebrow">
           <span className="gem-dot" aria-hidden="true" />
-          Google Gemini Hackathon &mdash; Built with Gemini API
+          Google DeepMind Hackathon &mdash; Built with Gemini API
         </div>
 
         <h1>
-          AI Support That Enforces Policy,{" "}
-          <span className="hl">Without Seeing Conversations.</span>
+          The SOC That Protects Your Agents,{" "}
+          <span className="hl">Without Reading Their Conversations.</span>
         </h1>
 
         <p className="hero-sub">
-          CipherGate uses Google Gemini embeddings and homomorphic encryption
-          so the policy server can detect harassment, threats, and sexual
-          misconduct &mdash; all while the plaintext{" "}
-          <em>never leaves the customer&apos;s device</em>.
+          Human customer support agents face harassment, threats, and sexual
+          misconduct every day &mdash; causing burnout and legal risk.
+          CipherGate is a{" "}
+          <strong>Security Operations Center (SOC)</strong> that screens
+          customer messages using Google Gemini embeddings and homomorphic
+          encryption, so the{" "}
+          <em>SaaS provider never reads a single word of plaintext</em>.
         </p>
 
         <div className="hero-actions">
@@ -76,7 +79,7 @@ export default function AboutPage() {
             ▶&nbsp; Try Live Demo
           </Link>
           <Link className="btn-ghost" href="/monitor">
-            SOC Monitor →
+            SOC Dashboard →
           </Link>
         </div>
 
@@ -106,35 +109,36 @@ export default function AboutPage() {
       <section className="about-section" id="problem">
         <p className="section-label">The Problem</p>
         <h2 className="section-title">
-          Today&apos;s AI Support is a Privacy Liability
+          Human Support Agents Are Unprotected
         </h2>
         <p className="section-body">
-          Every enterprise deploying AI customer support faces the same dilemma:
-          your SaaS vendor needs to process customer conversations to enforce
-          policy &mdash; but doing so means they can read everything.
-          Regulators, customers, and enterprise buyers are no longer accepting
-          that trade-off.
+          Contact center agents face abusive customers every day &mdash;
+          repeated harassment, physical threats, and sexual misconduct. This
+          emotional labor causes burnout, high turnover, and serious legal
+          exposure. Companies like <strong>GeminiMart</strong> need a way to
+          screen messages before they reach an agent &mdash; but current SaaS
+          screening tools require sending raw conversations to a third party.
         </p>
 
         <div className="problem-grid">
           <div className="problem-card bad">
             <p className="problem-card-tag">Status Quo</p>
-            <h3>Plaintext flows to every vendor</h3>
+            <h3>Agents see every abusive message</h3>
             <p>
-              AI moderation, toxicity filters, and support platforms all receive
-              raw customer messages. One breach or rogue employee exposes
-              sensitive conversations. Compliance audits become nightmares. Trust
-              erodes.
+              Every threat, insult, and sexual remark reaches the agent
+              unscreened &mdash; or must be routed through a SaaS vendor who
+              can read every word. One breach or rogue employee exposes
+              all customer conversations. Compliance becomes a nightmare.
             </p>
           </div>
           <div className="problem-card good">
             <p className="problem-card-tag">CipherGate Approach</p>
-            <h3>Policy enforcement in ciphertext</h3>
+            <h3>Screen in ciphertext, protect the agent</h3>
             <p>
-              Customer messages are converted to semantic embeddings locally via
-              Gemini, encrypted with CKKS homomorphic encryption, and only then
-              sent to the policy server. The server scores, the client decides.
-              Plaintext stays put.
+              Messages are embedded locally by Gemini, encrypted with CKKS
+              homomorphic encryption, and scored by CipherGate in ciphertext.
+              The agent only sees clean messages. CipherGate never reads
+              plaintext.
             </p>
           </div>
         </div>
@@ -222,9 +226,10 @@ export default function AboutPage() {
             <p className="section-body">
               CipherGate would not be possible without Gemini&apos;s
               state-of-the-art embedding model. High-dimensional semantic
-              vectors are what enable policy detection to work in the
-              encrypted domain &mdash; low-quality embeddings would collapse
-              under CKKS noise. Gemini makes the math viable.
+              vectors capture abuse intent, tone, and context with enough
+              fidelity to survive CKKS encryption noise &mdash; low-quality
+              embeddings would collapse under it. Gemini is what makes
+              zero-knowledge policy enforcement mathematically viable.
             </p>
           </div>
 
@@ -411,12 +416,13 @@ export default function AboutPage() {
       <section className="about-section" id="impact">
         <p className="section-label">Impact</p>
         <h2 className="section-title">
-          Built for the Privacy-First Enterprise
+          Built to Protect Agents and Privacy
         </h2>
         <p className="section-body">
-          AI customer support is a multi-billion dollar market. Privacy
-          regulation (GDPR, CCPA, HIPAA) is creating a structural demand for
-          zero-knowledge SaaS. CipherGate is a category-defining solution.
+          Customer contact centers employ millions of agents worldwide. Protecting
+          them from online abuse &mdash; while preserving customer privacy and
+          meeting GDPR, CCPA, and data residency requirements &mdash; is a
+          structural challenge. CipherGate solves both simultaneously.
         </p>
 
         <div className="impact-grid">
@@ -458,7 +464,7 @@ export default function AboutPage() {
             ▶&nbsp; Open Live Demo
           </Link>
           <Link className="btn-ghost" href="/monitor">
-            SOC Monitor →
+            SOC Dashboard →
           </Link>
         </div>
       </section>
@@ -466,12 +472,12 @@ export default function AboutPage() {
       {/* ── Footer ── */}
       <footer className="about-footer">
         <span>
-          CipherGate &mdash; Google Gemini Hackathon Demo &mdash; 2025
+          CipherGate &mdash; Google DeepMind Hackathon Demo &mdash; 2026
         </span>
         <span>
           <a href="/">Chat Demo</a>
           &nbsp;&middot;&nbsp;
-          <a href="/monitor">SOC Monitor</a>
+          <a href="/monitor">SOC Dashboard</a>
           &nbsp;&middot;&nbsp;
           <a href="/about/kr">한국어</a>
           &nbsp;&middot;&nbsp;
