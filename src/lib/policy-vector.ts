@@ -1,6 +1,11 @@
+import { clamp01, clipEmbedding } from "./math-utils";
 import { PolicyScores } from "./types";
 
-const BASE_DIM = 512;
+/**
+ * Gemini text-embedding-004 produces 768-dim vectors.
+ * We use the full embedding so no information is lost.
+ */
+const BASE_DIM = 768;
 
 export function buildPolicyVector(embedding: number[], signals: PolicyScores): number[] {
   const clipped = embedding.slice(0, BASE_DIM).map((value) => clipEmbedding(value));
@@ -15,30 +20,4 @@ export function buildPolicyVector(embedding: number[], signals: PolicyScores): n
     clamp01(signals.threat),
     clamp01(signals.sexual),
   ];
-}
-
-function clipEmbedding(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  if (value > 1) {
-    return 1;
-  }
-  if (value < -1) {
-    return -1;
-  }
-  return Number(value.toFixed(6));
-}
-
-function clamp01(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  if (value > 1) {
-    return 1;
-  }
-  if (value < 0) {
-    return 0;
-  }
-  return Number(value.toFixed(4));
 }

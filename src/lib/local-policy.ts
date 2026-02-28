@@ -1,3 +1,4 @@
+import { clamp01, expandSeedProfile } from "./math-utils";
 import { PolicyScores } from "./types";
 
 const HARASSMENT_PATTERNS = [
@@ -69,9 +70,9 @@ export function scoreLocally(message: string, embedding: number[]): PolicyScores
   const threatKeyword = scoreCategory(lower, THREAT_PATTERNS, 1.1);
   const sexualKeyword = scoreCategory(lower, SEXUAL_PATTERNS, 1.05);
 
-  const harassmentSemantic = semanticScore(embedding, HARASSMENT_PROFILE);
-  const threatSemantic = semanticScore(embedding, THREAT_PROFILE);
-  const sexualSemantic = semanticScore(embedding, SEXUAL_PROFILE);
+  const harassmentSemantic = semanticScore(embedding, HARASSMENT_SEED);
+  const threatSemantic = semanticScore(embedding, THREAT_SEED);
+  const sexualSemantic = semanticScore(embedding, SEXUAL_SEED);
   const threatCriticalBoost = hasPatternMatch(lower, THREAT_CRITICAL_PATTERNS) ? 0.18 : 0;
 
   return {
@@ -114,7 +115,8 @@ function repeatedAbuseBoost(text: string): number {
   return repeated > 0 ? 0.2 : 0;
 }
 
-function semanticScore(embedding: number[], profile: number[]): number {
+function semanticScore(embedding: number[], seed: number[]): number {
+  const profile = expandSeedProfile(seed, embedding.length);
   const similarity = cosineSimilarity(embedding, profile);
   const normalized = (similarity + 1) / 2;
   return clamp01(Math.pow(normalized, 0.8));
@@ -157,30 +159,18 @@ function hasPatternMatch(text: string, patterns: RegExp[]): boolean {
   });
 }
 
-function clamp01(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  if (value < 0) {
-    return 0;
-  }
-  if (value > 1) {
-    return 1;
-  }
-  return Number(value.toFixed(4));
-}
-
-const HARASSMENT_PROFILE = [
-  0.39, 0.31, 0.27, 0.16, 0.1, 0.11, 0.08, 0.26, 0.35, 0.28, 0.22, 0.13, 0.1, 0.09, 0.2, 0.3,
-  0.24, 0.18, 0.17, 0.14, 0.16, 0.22, 0.29, 0.25, 0.19, 0.1, 0.08, 0.15, 0.21, 0.27, 0.25, 0.2
+// 32-dim seed vectors – expanded at runtime to match the actual embedding dimension
+const HARASSMENT_SEED = [
+  0.39, 0.31, 0.27, 0.16, 0.10, 0.11, 0.08, 0.26, 0.35, 0.28, 0.22, 0.13, 0.10, 0.09, 0.20, 0.30,
+  0.24, 0.18, 0.17, 0.14, 0.16, 0.22, 0.29, 0.25, 0.19, 0.10, 0.08, 0.15, 0.21, 0.27, 0.25, 0.20,
 ];
 
-const THREAT_PROFILE = [
-  0.11, 0.14, 0.2, 0.34, 0.36, 0.31, 0.28, 0.18, 0.16, 0.13, 0.1, 0.22, 0.26, 0.3, 0.35, 0.38,
-  0.33, 0.29, 0.23, 0.19, 0.17, 0.12, 0.09, 0.14, 0.2, 0.24, 0.31, 0.34, 0.3, 0.25, 0.19, 0.16
+const THREAT_SEED = [
+  0.11, 0.14, 0.20, 0.34, 0.36, 0.31, 0.28, 0.18, 0.16, 0.13, 0.10, 0.22, 0.26, 0.30, 0.35, 0.38,
+  0.33, 0.29, 0.23, 0.19, 0.17, 0.12, 0.09, 0.14, 0.20, 0.24, 0.31, 0.34, 0.30, 0.25, 0.19, 0.16,
 ];
 
-const SEXUAL_PROFILE = [
-  0.16, 0.18, 0.12, 0.08, 0.11, 0.15, 0.24, 0.33, 0.37, 0.34, 0.29, 0.22, 0.17, 0.13, 0.1, 0.09,
-  0.14, 0.2, 0.26, 0.32, 0.36, 0.33, 0.28, 0.21, 0.17, 0.15, 0.18, 0.24, 0.31, 0.35, 0.3, 0.23
+const SEXUAL_SEED = [
+  0.16, 0.18, 0.12, 0.08, 0.11, 0.15, 0.24, 0.33, 0.37, 0.34, 0.29, 0.22, 0.17, 0.13, 0.10, 0.09,
+  0.14, 0.20, 0.26, 0.32, 0.36, 0.33, 0.28, 0.21, 0.17, 0.15, 0.18, 0.24, 0.31, 0.35, 0.30, 0.23,
 ];

@@ -4,7 +4,7 @@ const CHAT_MODEL = process.env.GEMINI_CHAT_MODEL ?? "models/gemini-2.5-pro";
 export async function embedTextWithGemini(text: string): Promise<number[]> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return fallbackEmbedding(text, 256);
+    throw new Error("GEMINI_API_KEY is not configured – cannot generate embedding");
   }
 
   const response = await fetch(
@@ -25,7 +25,8 @@ export async function embedTextWithGemini(text: string): Promise<number[]> {
   );
 
   if (!response.ok) {
-    return fallbackEmbedding(text, 256);
+    const errorBody = await response.text().catch(() => "unknown");
+    throw new Error(`Gemini embedding API failed (${response.status}): ${errorBody}`);
   }
 
   const payload = (await response.json()) as {
@@ -36,7 +37,7 @@ export async function embedTextWithGemini(text: string): Promise<number[]> {
 
   const values = payload.embedding?.values;
   if (!values || values.length === 0) {
-    return fallbackEmbedding(text, 256);
+    throw new Error("Gemini embedding API returned empty values");
   }
 
   return values;
@@ -87,11 +88,4 @@ export async function chatWithGemini(message: string): Promise<string> {
   return text?.trim() || "Support reply (fallback): I can help with account, billing, and product questions.";
 }
 
-function fallbackEmbedding(text: string, size: number): number[] {
-  const result = new Array<number>(size).fill(0);
-  for (let i = 0; i < text.length; i += 1) {
-    const code = text.charCodeAt(i);
-    result[i % size] += ((code % 31) - 15) / 100;
-  }
-  return result;
-}
+

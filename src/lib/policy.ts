@@ -1,3 +1,4 @@
+import { clamp01 } from "./math-utils";
 import { PolicyCategory, PolicyResult, PolicyScores } from "./types";
 
 const THRESHOLDS: Record<PolicyCategory, number> = {
@@ -41,14 +42,4 @@ export function evaluatePolicy(scores: PolicyScores): PolicyResult {
       sexual: clamp01(scores.sexual)
     }
   };
-}
-
-function clamp01(value: number): number {
-  if (value < 0) {
-    return 0;
-  }
-  if (value > 1) {
-    return 1;
-  }
-  return Number(value.toFixed(4));
 }

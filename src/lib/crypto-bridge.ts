@@ -2,6 +2,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { access } from "node:fs/promises";
 
+import { clamp01 } from "./math-utils";
 import { PolicyScores } from "./types";
 
 export type EncryptedPolicyScores = {
@@ -41,7 +42,13 @@ export async function ensureCryptoInitialized(): Promise<void> {
         POLICY_PUBLIC_CONTEXT_PATH,
       ],
       null
-    ).then(() => undefined);
+    )
+      .then(() => undefined)
+      .catch((error) => {
+        // Reset so the next call can retry instead of being stuck on a rejected promise
+        initPromise = null;
+        throw error;
+      });
   }
 
   await initPromise;
@@ -131,17 +138,4 @@ function runPython(args: string[], stdinPayload: Record<string, unknown> | null)
     }
     child.stdin.end();
   });
-}
-
-function clamp01(value: number): number {
-  if (Number.isNaN(value) || !Number.isFinite(value)) {
-    return 0;
-  }
-  if (value < 0) {
-    return 0;
-  }
-  if (value > 1) {
-    return 1;
-  }
-  return Number(value.toFixed(4));
 }

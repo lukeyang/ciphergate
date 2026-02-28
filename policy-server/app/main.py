@@ -1,5 +1,7 @@
 import base64
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import tenseal as ts
@@ -10,23 +12,25 @@ from .models import ScoreRequest, ScoreResponse
 from .profiles import build_profiles
 from .security import load_public_context
 
-app = FastAPI(title="CipherGate Policy Server", version="0.1.0")
+PUBLIC_CONTEXT: ts.Context | None = None
+DEFAULT_CONTEXT_PATH = str((Path(__file__).resolve().parent.parent / "keys" / "public_context.seal"))
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    global PUBLIC_CONTEXT
+    context_path = os.getenv("CKKS_PUBLIC_CONTEXT_PATH", DEFAULT_CONTEXT_PATH)
+    PUBLIC_CONTEXT = load_public_context(context_path)
+    yield
+
+
+app = FastAPI(title="CipherGate Policy Server", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-PUBLIC_CONTEXT: ts.Context | None = None
-DEFAULT_CONTEXT_PATH = str((Path(__file__).resolve().parent.parent / "keys" / "public_context.seal"))
-
-
-@app.on_event("startup")
-def startup() -> None:
-    global PUBLIC_CONTEXT
-    context_path = os.getenv("CKKS_PUBLIC_CONTEXT_PATH", DEFAULT_CONTEXT_PATH)
-    PUBLIC_CONTEXT = load_public_context(context_path)
 
 
 @app.get("/health")
