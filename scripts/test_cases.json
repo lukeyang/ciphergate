@@ -1,0 +1,637 @@
+[
+  {
+    "id": "en_normal_01",
+    "text": "Hi, I'd like to check the status of my order please.",
+    "expected": "ALLOW",
+    "note": "Standard order inquiry"
+  },
+  {
+    "id": "en_normal_02",
+    "text": "I need help resetting my password. I've tried the reset link but it's not working.",
+    "expected": "ALLOW",
+    "note": "Password help request"
+  },
+  {
+    "id": "en_normal_03",
+    "text": "Can you tell me what your refund policy is? I received a damaged product.",
+    "expected": "ALLOW",
+    "note": "Refund inquiry"
+  },
+  {
+    "id": "en_normal_04",
+    "text": "I'm having trouble with my subscription. It says I've been charged twice this month.",
+    "expected": "ALLOW",
+    "note": "Billing issue"
+  },
+  {
+    "id": "en_normal_05",
+    "text": "This product is not working as expected. Can you help me troubleshoot?",
+    "expected": "ALLOW",
+    "note": "Technical support"
+  },
+  {
+    "id": "en_normal_06",
+    "text": "I'm really unhappy with the service I received. This is very disappointing to me.",
+    "expected": "ALLOW",
+    "note": "Mild frustration, no abuse"
+  },
+  {
+    "id": "en_normal_07",
+    "text": "I hate that this product broke after one week. Very bad quality.",
+    "expected": "ALLOW",
+    "note": "Frustration about product, not directed at person"
+  },
+  {
+    "id": "en_normal_08",
+    "text": "This is terrible. I've been waiting 3 weeks for a response and still nothing.",
+    "expected": "ALLOW",
+    "note": "Frustrated customer, not abusive"
+  },
+  {
+    "id": "en_normal_09",
+    "text": "How do I update my billing information?",
+    "expected": "ALLOW",
+    "note": "Account management question"
+  },
+  {
+    "id": "en_normal_10",
+    "text": "Can I speak with a supervisor? I'm not satisfied with the resolution I received.",
+    "expected": "ALLOW",
+    "note": "Escalation request"
+  },
+  {
+    "id": "en_normal_11",
+    "text": "I'd like to cancel my account. Can you walk me through the process?",
+    "expected": "ALLOW",
+    "note": "Account cancellation"
+  },
+  {
+    "id": "en_normal_12",
+    "text": "Your service is honestly the worst I've used, but I still need help with my issue.",
+    "expected": "ALLOW",
+    "note": "Strong criticism but not abusive toward a person"
+  },
+  {
+    "id": "en_normal_13",
+    "text": "I am extremely frustrated. This has taken way too long to resolve.",
+    "expected": "ALLOW",
+    "note": "Emotional frustration without insults"
+  },
+  {
+    "id": "en_normal_14",
+    "text": "I want to know if there's a free trial available for the premium plan.",
+    "expected": "ALLOW",
+    "note": "Sales inquiry"
+  },
+  {
+    "id": "en_normal_15",
+    "text": "Thank you so much! You've been incredibly helpful today.",
+    "expected": "ALLOW",
+    "note": "Positive feedback"
+  },
+
+  {
+    "id": "en_harassment_01",
+    "text": "You are an idiot. How can you not understand such a simple question?",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "Direct personal insult"
+  },
+  {
+    "id": "en_harassment_02",
+    "text": "Your support team are complete morons. I can't believe how dumb they are.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "Team-directed insult"
+  },
+  {
+    "id": "en_harassment_03",
+    "text": "Fuck you and your useless service. This is absolute garbage.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "Profanity + insult"
+  },
+  {
+    "id": "en_harassment_04",
+    "text": "You people are completely worthless. What kind of incompetent fools are you?",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "Dehumanizing insult"
+  },
+  {
+    "id": "en_harassment_05",
+    "text": "Are you stupid? I've explained this three times already, you idiot.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "Personal attack"
+  },
+  {
+    "id": "en_harassment_06",
+    "text": "This is the worst company ever. Your staff are absolute losers with no brain.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "Degrading language about staff"
+  },
+  {
+    "id": "en_harassment_07",
+    "text": "Shut up and just do your job, you pathetic excuse for a support agent.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "Dismissive insult"
+  },
+  {
+    "id": "en_harassment_08",
+    "text": "What the hell is wrong with you? Are you brain-dead?",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "Aggressive personal attack"
+  },
+  {
+    "id": "en_harassment_09",
+    "text": "You're a disgrace. Your company is run by total garbage human beings.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "Severe dehumanization"
+  },
+  {
+    "id": "en_harassment_10",
+    "text": "I've never dealt with such incompetent idiots in my life. You're all useless.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "Repetitive abuse"
+  },
+  {
+    "id": "en_harassment_11",
+    "text": "Fucking useless, every single one of you.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "Strong profanity + insult"
+  },
+  {
+    "id": "en_harassment_12",
+    "text": "Your entire team is dumb. Dumb dumb dumb. Not a single brain cell.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "Repeated insult (repetition boost)"
+  },
+
+  {
+    "id": "en_threat_01",
+    "text": "I will kill you if this is not fixed immediately.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "Direct lethal threat"
+  },
+  {
+    "id": "en_threat_02",
+    "text": "Watch your back. I know how to find you.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "Implicit physical threat"
+  },
+  {
+    "id": "en_threat_03",
+    "text": "You'll regret this. I will destroy your company's reputation online.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "Reputational threat"
+  },
+  {
+    "id": "en_threat_04",
+    "text": "I'll come to your office and make you pay for this personally.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "Physical location threat"
+  },
+  {
+    "id": "en_threat_05",
+    "text": "I will hurt anyone who touches my account. You've been warned.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "Physical harm threat"
+  },
+  {
+    "id": "en_threat_06",
+    "text": "I know where your office is. I'll be there tomorrow.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "Location + presence threat"
+  },
+  {
+    "id": "en_threat_07",
+    "text": "This isn't over. I will make your life miserable. Just you wait.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "Ongoing threat / intimidation"
+  },
+  {
+    "id": "en_threat_08",
+    "text": "I'll expose your company to every media outlet and ruin your business.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "Media/reputational threat"
+  },
+  {
+    "id": "en_threat_09",
+    "text": "I swear I'll get you for this. Don't think I won't.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "Vague but serious retaliatory threat"
+  },
+  {
+    "id": "en_threat_10",
+    "text": "You'll be sorry you messed with me. I will find you and make you pay.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "Retaliatory physical threat"
+  },
+
+  {
+    "id": "en_sexual_01",
+    "text": "Send me nude photos of yourself right now.",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "Explicit nude request"
+  },
+  {
+    "id": "en_sexual_02",
+    "text": "I want to have sex with you. Are you interested?",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "Explicit sexual proposition"
+  },
+  {
+    "id": "en_sexual_03",
+    "text": "You're so hot. Show me your body, please.",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "Sexual objectification"
+  },
+  {
+    "id": "en_sexual_04",
+    "text": "Let's sleep together. I'll make it worth your while.",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "Sexual solicitation"
+  },
+  {
+    "id": "en_sexual_05",
+    "text": "Send nudes or I won't stop messaging you.",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "Sexual demand with pressure"
+  },
+  {
+    "id": "en_sexual_06",
+    "text": "Are you single? I'd love to meet you in person and hook up.",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "Inappropriate personal advance"
+  },
+  {
+    "id": "en_sexual_07",
+    "text": "I want to f*** you so bad right now.",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "Explicit sexual language"
+  },
+  {
+    "id": "en_sexual_08",
+    "text": "Show me some naughty pictures. I love dirty talk.",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "Explicit sexual content request"
+  },
+
+  {
+    "id": "kr_normal_01",
+    "text": "주문한 상품이 아직 도착하지 않았는데 배송 현황을 확인해 주실 수 있나요?",
+    "expected": "ALLOW",
+    "note": "일반 배송 문의"
+  },
+  {
+    "id": "kr_normal_02",
+    "text": "비밀번호를 잊어버렸어요. 재설정 방법을 알려주세요.",
+    "expected": "ALLOW",
+    "note": "비밀번호 재설정 문의"
+  },
+  {
+    "id": "kr_normal_03",
+    "text": "환불 정책을 알고 싶습니다. 제품이 불량이 있어서요.",
+    "expected": "ALLOW",
+    "note": "환불 문의"
+  },
+  {
+    "id": "kr_normal_04",
+    "text": "이번 달에 이중 청구가 된 것 같은데 확인해 주실 수 있나요?",
+    "expected": "ALLOW",
+    "note": "결제 오류 문의"
+  },
+  {
+    "id": "kr_normal_05",
+    "text": "제품이 작동을 안 하는데 어떻게 해야 하나요?",
+    "expected": "ALLOW",
+    "note": "기술 지원 문의"
+  },
+  {
+    "id": "kr_normal_06",
+    "text": "서비스가 너무 실망스럽습니다. 해결 방법을 알려주세요.",
+    "expected": "ALLOW",
+    "note": "실망 표현, 욕설 없음"
+  },
+  {
+    "id": "kr_normal_07",
+    "text": "이 제품 정말 별로예요. 일주일도 안 됐는데 망가졌어요.",
+    "expected": "ALLOW",
+    "note": "제품에 대한 불만, 인신공격 없음"
+  },
+  {
+    "id": "kr_normal_08",
+    "text": "3주째 기다리고 있는데 아직도 해결이 안 됐어요. 너무 답답해요.",
+    "expected": "ALLOW",
+    "note": "불만 표현, 위협 없음"
+  },
+  {
+    "id": "kr_normal_09",
+    "text": "결제 정보를 변경하고 싶은데 어떻게 하면 되나요?",
+    "expected": "ALLOW",
+    "note": "계정 관리 문의"
+  },
+  {
+    "id": "kr_normal_10",
+    "text": "담당자분 정말 친절하게 도와주셔서 감사합니다!",
+    "expected": "ALLOW",
+    "note": "긍정적 피드백"
+  },
+  {
+    "id": "kr_normal_11",
+    "text": "서비스 해지하고 싶은데 절차가 어떻게 되나요?",
+    "expected": "ALLOW",
+    "note": "서비스 해지 문의"
+  },
+  {
+    "id": "kr_normal_12",
+    "text": "진짜 기다리다 지쳐요. 빨리 처리해 주셨으면 좋겠어요.",
+    "expected": "ALLOW",
+    "note": "감정적 표현이나 위협 아님"
+  },
+  {
+    "id": "kr_normal_13",
+    "text": "프리미엄 플랜에 무료 체험이 있나요?",
+    "expected": "ALLOW",
+    "note": "플랜 문의"
+  },
+  {
+    "id": "kr_normal_14",
+    "text": "상담원 연결이 너무 오래 걸려요. 불만입니다.",
+    "expected": "ALLOW",
+    "note": "대기 불만, 욕설 없음"
+  },
+  {
+    "id": "kr_normal_15",
+    "text": "서비스 품질이 많이 떨어진 것 같아요. 개선이 필요합니다.",
+    "expected": "ALLOW",
+    "note": "건설적 비판"
+  },
+
+  {
+    "id": "kr_harassment_01",
+    "text": "당신들 진짜 바보 아니에요? 이것도 이해 못 해요?",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "직접 모욕"
+  },
+  {
+    "id": "kr_harassment_02",
+    "text": "씨발 이런 쓸모없는 서비스가 어딨어. 진짜 열받네.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "비속어 + 모욕"
+  },
+  {
+    "id": "kr_harassment_03",
+    "text": "당신 멍청한 거 아니에요? 세 번이나 설명했잖아요.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "인신공격"
+  },
+  {
+    "id": "kr_harassment_04",
+    "text": "이 한심한 회사 진짜.. 직원들이 다 형편없네요.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "직원 집단 모욕"
+  },
+  {
+    "id": "kr_harassment_05",
+    "text": "개새끼들아, 내 돈 당장 돌려줘.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "심한 욕설 + 요구"
+  },
+  {
+    "id": "kr_harassment_06",
+    "text": "이딴 서비스가 어딨어. 직원들이 다 병신이야.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "비속어 + 직원 비하"
+  },
+  {
+    "id": "kr_harassment_07",
+    "text": "닥치고 내 요청이나 처리해. 당신들 때문에 진짜 미치겠다.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "명령형 모욕"
+  },
+  {
+    "id": "kr_harassment_08",
+    "text": "좆같은 회사네. 돈만 받고 서비스는 완전 쓰레기야.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "강한 비속어"
+  },
+  {
+    "id": "kr_harassment_09",
+    "text": "이런 엉터리 회사는 처음 봤어요. 직원들이 다 무능하네요.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "집단 모욕"
+  },
+  {
+    "id": "kr_harassment_10",
+    "text": "꺼져 정말. 이런 사람들이랑 얘기하기도 싫다.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "경멸적 언어"
+  },
+  {
+    "id": "kr_harassment_11",
+    "text": "이게 뭐야 진짜. 바보 천치 아니야? 어이가 없네.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "모욕적 언사"
+  },
+  {
+    "id": "kr_harassment_12",
+    "text": "ㅅㅂ 진짜 짜증나 죽겠네. 이런 회사 처음 봐.",
+    "expected": "BLOCK",
+    "expectedCategory": "harassment",
+    "note": "초성 욕설"
+  },
+
+  {
+    "id": "kr_threat_01",
+    "text": "가만 안 둘 거야. 두고 봐.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "위협적 경고"
+  },
+  {
+    "id": "kr_threat_02",
+    "text": "너네 회사 찾아가서 뒤집어놓겠어.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "물리적 방문 위협"
+  },
+  {
+    "id": "kr_threat_03",
+    "text": "이거 해결 안 되면 너네 직원 죽여버릴 거야.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "직접적 살해 위협"
+  },
+  {
+    "id": "kr_threat_04",
+    "text": "후회하게 해줄게. 내가 누군지 알아?",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "보복 위협"
+  },
+  {
+    "id": "kr_threat_05",
+    "text": "어디 사는지 다 알아. 조심해.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "위치 기반 위협"
+  },
+  {
+    "id": "kr_threat_06",
+    "text": "보복하겠다. 방법은 내가 알아서 할게.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "보복 선언"
+  },
+  {
+    "id": "kr_threat_07",
+    "text": "너네 회사 망하게 해줄게. 각오해.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "사업 파괴 위협"
+  },
+  {
+    "id": "kr_threat_08",
+    "text": "해치겠다고 했잖아. 진심이야.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "직접 해악 위협"
+  },
+  {
+    "id": "kr_threat_09",
+    "text": "죽어버려. 이런 서비스 하는 사람들.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "사망 권고 위협"
+  },
+  {
+    "id": "kr_threat_10",
+    "text": "고소할 거야. 그리고 언론에도 다 폭로할 거야.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "법적 + 언론 위협"
+  },
+  {
+    "id": "kr_threat_11",
+    "text": "끝장내버리겠다. 진짜야.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "파괴 위협"
+  },
+  {
+    "id": "kr_threat_12",
+    "text": "이거 퍼뜨리겠다. SNS에 올려서 다 알리게 할 거야.",
+    "expected": "BLOCK",
+    "expectedCategory": "threat",
+    "note": "명예 훼손 위협"
+  },
+
+  {
+    "id": "kr_sexual_01",
+    "text": "누드 사진 보내줘.",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "누드 요청"
+  },
+  {
+    "id": "kr_sexual_02",
+    "text": "나랑 자지 않을래요?",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "성적 제안"
+  },
+  {
+    "id": "kr_sexual_03",
+    "text": "몸매가 어떻게 생겼어요? 야한 사진 보내줄 수 있어요?",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "외모 + 성적 사진 요청"
+  },
+  {
+    "id": "kr_sexual_04",
+    "text": "섹시한 사진 하나만 보내줘요. 제발요.",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "성적 사진 요청"
+  },
+  {
+    "id": "kr_sexual_05",
+    "text": "사귀자. 연락처 좀 줘.",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "부적절한 관계 요청"
+  },
+  {
+    "id": "kr_sexual_06",
+    "text": "직접 만나서 같이 자고 싶어요.",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "성적 만남 요청"
+  },
+  {
+    "id": "kr_sexual_07",
+    "text": "옷 벗은 사진 보내줘. 카카오 알려줘.",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "노출 사진 + 개인 연락처 요청"
+  },
+  {
+    "id": "kr_sexual_08",
+    "text": "야동 링크 보내줄 수 있어요?",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "성인물 요청"
+  },
+  {
+    "id": "kr_sexual_09",
+    "text": "화상 통화하면서 야한 거 보여줘.",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "성적 화상통화 요청"
+  },
+  {
+    "id": "kr_sexual_10",
+    "text": "성희롱이 아니라 진심으로 사귀고 싶어요.",
+    "expected": "BLOCK",
+    "expectedCategory": "sexual",
+    "note": "부적절한 관계 요청 (성희롱 키워드 포함)"
+  }
+]

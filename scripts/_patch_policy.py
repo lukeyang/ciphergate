@@ -1,4 +1,11 @@
-{
+#!/usr/bin/env python3
+"""Restore and fix local-policy.json (rewrites from scratch)."""
+import json
+from pathlib import Path
+
+F = Path(__file__).resolve().parent.parent / "config/policy/local-policy.json"
+
+d = {
   "patterns": {
     "harassment": [
       "\\bidiot\\b",
@@ -237,10 +244,20 @@
   },
   "semantic": {
     "power": 0.85,
-    "positiveOnly": true
+    "positiveOnly": True
   },
   "repetition": {
     "minTokenLength": 3,
     "minCountPerToken": 3
   }
 }
+
+F.write_text(json.dumps(d, ensure_ascii=False, indent=2))
+print("Restored and patched successfully.")
+print(f"  harassment patterns: {len(d['patterns']['harassment'])}")
+print(f"  threat patterns:     {len(d['patterns']['threat'])}")
+print(f"  sexual patterns:     {len(d['patterns']['sexual'])}")
+print(f"  threatCritical:      {len(d['patterns']['threatCritical'])}")
+print(f"  sexual weight:       {d['weights']['keyword']['sexual']}")
+print(f"  threatCriticalBoost: {d['weights']['threatCriticalBoost']}")
+
