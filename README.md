@@ -36,7 +36,12 @@ POLICY_SERVER_URL=http://127.0.0.1:8001
 PYTHON_BIN=.venv/bin/python
 GEMINI_EMBED_MODEL=models/gemini-embedding-001
 GEMINI_CHAT_MODEL=models/gemini-2.5-pro
+GEMINI_CHAT_MODEL_FALLBACKS=models/gemini-2.5-flash,models/gemini-1.5-flash
+GEMINI_CHAT_TIMEOUT_MS=7000
+GEMINI_SUPPORT_PROMPT_FILE=prompts/support-agent.system.txt
 ```
+
+Edit `prompts/support-agent.system.txt` to change support-agent persona without touching application code.
 
 ## Run policy-server
 
