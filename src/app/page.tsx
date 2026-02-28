@@ -193,18 +193,7 @@ export default function HomePage(): JSX.Element {
         return;
       }
 
-      const pendingReplyId = crypto.randomUUID();
-      setChat((previous) => [
-        ...previous,
-        {
-          id: pendingReplyId,
-          role: "model",
-          text: `${decisionLine}\nGenerating support reply...`,
-          decisionLine,
-          replyText: "Generating support reply...",
-        },
-      ]);
-      setStatus(`${policyLatencyLine} · Policy ALLOW, generating support reply...`);
+      setStatus(`${policyLatencyLine} · Policy ALLOW, routing to support agent...`);
 
       setIsPolicySubmitting(false);
       setIsReplyPending(true);
@@ -223,33 +212,29 @@ export default function HomePage(): JSX.Element {
 
         if (!chatResponse.ok) {
           const reason = await chatResponse.text().catch(() => "chat reply failed");
-          setChat((previous) =>
-            previous.map((item) =>
-              item.id === pendingReplyId
-                ? {
-                    ...item,
-                    text: `${decisionLine}\nSupport reply failed: ${reason}`,
-                    replyText: `Support reply failed: ${reason}`,
-                  }
-                : item
-            )
-          );
+          setChat((previous) => [
+            ...previous,
+            {
+              id: crypto.randomUUID(),
+              role: "system",
+              text: `Support channel failed: ${reason}`,
+            },
+          ]);
           setStatus(`${policyLatencyLine} · Reply generation failed`);
           return;
         }
 
         const chatPayload = (await chatResponse.json()) as ChatReplyResponse;
-        setChat((previous) =>
-          previous.map((item) =>
-            item.id === pendingReplyId
-              ? {
-                  ...item,
-                  text: `${decisionLine}\n${chatPayload.reply}`,
-                  replyText: chatPayload.reply,
-                }
-              : item
-          )
-        );
+        setChat((previous) => [
+          ...previous,
+          {
+            id: crypto.randomUUID(),
+            role: "model",
+            text: `${decisionLine}\n${chatPayload.reply}`,
+            decisionLine,
+            replyText: chatPayload.reply,
+          },
+        ]);
         setStatus(`${policyLatencyLine} · Reply ${chatPayload.chatMs} ms`);
       } finally {
         setIsReplyPending(false);
@@ -470,11 +455,11 @@ export default function HomePage(): JSX.Element {
               disabled={blocked || isPolicySubmitting || !sessionId}
             />
             <button
-              className="command-btn primary"
+              className={`command-btn primary${isPolicySubmitting ? " crypto-phase" : ""}`}
               type="submit"
               disabled={blocked || isPolicySubmitting || !sessionId || message.trim().length === 0}
             >
-              {isPolicySubmitting ? "Encrypting…" : isReplyPending ? "Replying…" : "Send"}
+              {isPolicySubmitting ? "Encrypting/Decrypting…" : isReplyPending ? "Connecting agent…" : "Send"}
             </button>
           </form>
           <div className="controls-row">
