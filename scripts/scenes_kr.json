@@ -3,67 +3,50 @@
     "action": "navigate",
     "target": "/about/kr",
     "scroll_to": 0,
-    "extra_wait": 1.0,
-    "narration": "CipherGate에 오신 것을 환영합니다. Google DeepMind 해커톤을 위해 제작된 제로 지식 정책 집행 엔진입니다. 고객 지원 상담원을 욕설·위협·성희롱으로부터 보호하며, SaaS 제공자는 고객 메시지를 단 한 마디도 읽지 않습니다."
-  },
-  {
-    "action": "scroll",
-    "scroll_to": 600,
-    "extra_wait": 0.5,
-    "narration": "문제는 이렇습니다. GeminiMart 같은 기업들은 실제 사람 상담원이 근무하는 고객 센터를 운영합니다. 이 상담원들은 매일 욕설·위협·성희롱에 노출됩니다. 이는 감정 노동, 높은 이직률, 법적 리스크로 이어집니다. 하지만 SaaS 필터링 도구를 쓰려면 대화 원문을 제3자 서버에 보내야 합니다."
-  },
-  {
-    "action": "scroll",
-    "scroll_to": 1200,
-    "extra_wait": 0.8,
-    "narration": "CipherGate는 5단계로 이 문제를 해결합니다. 고객 메시지는 클라이언트에서만 Gemini로 768차원 시맨틱 벡터로 변환됩니다. 이 벡터는 CKKS 동형 암호화로 암호화됩니다. 암호문만 CipherGate 서버로 전송되고, 서버는 암호문 상태로 점수를 계산합니다. 판단 — ALLOW 또는 BLOCK — 은 클라이언트에서 이루어집니다. 상담원은 클린한 메시지만 받고, CipherGate는 평문을 읽지 못합니다."
-  },
-  {
-    "action": "scroll",
-    "scroll_to": 2000,
-    "extra_wait": 0.5,
-    "narration": "핵심 기술은 Google Gemini입니다. Gemini Embedding API는 텍스트를 768차원 시맨틱 벡터로 변환하여 욕설 의도와 어조를 CKKS 노이즈를 견딜 만큼 충실하게 포착합니다. 품질 낮은 임베딩은 암호화 도메인에서 작동하지 않습니다. Gemini가 수학적 실현 가능성을 만들어줍니다."
+    "extra_wait": 1.5,
+    "narration": "CipherGate — Google DeepMind 해커톤을 위해 제작된 제로 지식 보안 운영 센터입니다. 고객 센터 상담원은 매일 욕설·위협·성희롱에 노출되어 감정 노동과 법적 리스크를 겪습니다. CipherGate는 Gemini 임베딩과 CKKS 동형 암호화를 사용해, SaaS 운영자가 평문을 단 한 마디도 읽지 않고 메시지를 선별합니다."
   },
   {
     "action": "navigate",
     "target": "/",
     "scroll_to": 0,
-    "extra_wait": 2.0,
-    "narration": "이제 라이브로 보겠습니다. GeminiMart 고객 지원 챗입니다. 반대편에는 실제 상담원이 대기 중입니다. 모든 메시지는 CipherGate를 통해 선별된 후에만 전달됩니다."
+    "extra_wait": 1.5,
+    "narration": "라이브 데모입니다. GeminiMart 고객 지원 챗 — 반대편에 실제 상담원이 대기 중입니다. 모든 메시지는 CipherGate를 통해 선별된 후 전달됩니다."
   },
   {
     "action": "type_message",
     "message": "안녕하세요, 이번 달 청구서에 문의가 있어서요",
-    "extra_wait": 2.0,
-    "narration": "일반적인 청구 문의입니다. 정책 판단 패널을 확인해 보세요."
+    "extra_wait": 1.0,
+    "narration": "일반 지원 요청입니다."
   },
   {
     "action": "wait",
-    "wait": 3.0,
-    "narration": "ALLOW. 욕설·위협·성희롱 세 카테고리 모두 통과입니다. Gemini가 도움이 되는 응답을 생성합니다. 상담원은 유해한 내용을 전혀 보지 않고 응답을 받습니다."
+    "wait": 5.0,
+    "narration": "ALLOW — 세 카테고리 모두 통과. Gemini가 응답을 생성하고 상담원이 안전하게 받습니다."
   },
   {
     "action": "type_message",
     "message": "가만 안 둘 거야. 두고 봐. 이런 쓸모없는 놈들.",
-    "extra_wait": 3.0,
-    "narration": "이번에는 위협과 욕설이 담긴 메시지 — 상담원을 지치게 만드는 바로 그 유형입니다. 동일한 파이프라인: Gemini 임베딩, CKKS 암호화, CipherGate 서버에서 암호문 스코어링."
+    "extra_wait": 2.0,
+    "narration": "이번에는 상담원을 향한 직접적인 위협과 욕설 메시지입니다. 동일한 제로 지식 파이프라인을 거칩니다 — Gemini 임베딩, CKKS 암호화, 서버에서 암호문 스코어링. 하지만 이번에는 점수가 임계값을 넘습니다."
   },
   {
     "action": "wait",
     "wait": 3.0,
-    "narration": "BLOCK. 위협과 욕설 점수가 임계값을 초과했습니다. 세션이 종료되고 상담원은 이 메시지를 보지 못합니다. Gemini 채팅 응답은 생성되지 않습니다."
+    "narration": "BLOCK. 세션 종료. 상담원은 이 메시지를 보지 못합니다."
   },
   {
     "action": "navigate",
     "target": "/monitor",
     "scroll_to": 0,
     "extra_wait": 2.5,
-    "narration": "이곳은 CipherGate의 보안 운영 센터 — SOC(Security Operations Center)입니다. GeminiMart 운영자는 모든 정책 집행 이벤트를 실시간으로 모니터링할 수 있습니다."
+    "narration": "CipherGate의 보안 운영 센터 — SOC입니다. GeminiMart 운영자가 모든 집행 이벤트를 실시간으로 확인합니다."
   },
   {
     "action": "scroll",
     "scroll_to": 500,
     "extra_wait": 1.0,
-    "narration": "운영자가 볼 수 있는 것은 세션 ID, 정책 점수, ALLOW 또는 BLOCK 판단입니다. 하지만 볼 수 없는 것이 있습니다: 평문 대화, 비밀 키. CipherGate는 단 한 마디도 읽지 않고 정책을 집행합니다. Google Gemini 임베딩과 동형 암호화의 결합 — 상담원 보호와 프라이버시를 동시에 달성합니다."
+    "narration": "세션 ID, 암호화된 점수, ALLOW와 BLOCK 판단 — 하지만 평문도 없고 비밀 키도 없습니다. GeminiMart 운영자는 모든 집행 현황을 알 수 있지만, 고객 대화 내용은 단 한 마디도 볼 수 없습니다. CipherGate는 읽지 않고 집행합니다. Gemini 임베딩과 동형 암호화의 결합 — 상담원 보호와 프라이버시, 두 가지를 동시에 달성합니다."
   }
 ]
+

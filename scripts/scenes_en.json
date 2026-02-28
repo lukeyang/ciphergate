@@ -3,68 +3,51 @@
     "action": "navigate",
     "target": "/about",
     "scroll_to": 0,
-    "extra_wait": 1.0,
-    "narration": "Welcome to CipherGate — a zero-knowledge policy enforcement engine built for the Google DeepMind Hackathon. It protects human customer support agents from harassment, threats, and sexual misconduct, without the SaaS provider ever reading a single word of plaintext."
-  },
-  {
-    "action": "scroll",
-    "scroll_to": 600,
-    "extra_wait": 0.5,
-    "narration": "Here's the real problem. Companies like GeminiMart run customer centers staffed by real human agents. Those agents face harassment, threats, and sexual misconduct every day. The emotional labor causes burnout, turnover, and legal exposure. They need protection — but traditional SaaS screening requires sending raw conversations to a third party."
-  },
-  {
-    "action": "scroll",
-    "scroll_to": 1200,
-    "extra_wait": 0.8,
-    "narration": "CipherGate solves this in five steps. The customer message is embedded by Gemini into a 768-dimensional semantic vector — client-side only. The vector is encrypted with CKKS homomorphic encryption. Only the ciphertext is sent to CipherGate, which scores it entirely in encrypted form. The decision — ALLOW or BLOCK — is made locally. The agent only sees clean messages. CipherGate never reads plaintext."
-  },
-  {
-    "action": "scroll",
-    "scroll_to": 2000,
-    "extra_wait": 0.5,
-    "narration": "The key enabler is Google Gemini. The Gemini Embedding API converts text into a 768-dimensional semantic vector capturing abuse intent, tone, and context with enough fidelity to survive CKKS noise. Lower-quality embeddings would collapse under it. Gemini is what makes zero-knowledge policy enforcement mathematically viable."
+    "extra_wait": 1.5,
+    "narration": "CipherGate — a zero-knowledge Security Operations Center built for the Google DeepMind Hackathon. Human contact center agents face harassment, threats, and sexual misconduct every day — causing burnout and legal risk. CipherGate screens every message using Gemini embeddings and CKKS homomorphic encryption, so the SaaS operator never reads a single word of plaintext."
   },
   {
     "action": "navigate",
     "target": "/",
     "scroll_to": 0,
-    "extra_wait": 2.0,
-    "narration": "Now let's see it live. This is the GeminiMart customer support chat. A human agent is waiting on the other side. Every message is screened by CipherGate before it gets through."
+    "extra_wait": 1.5,
+    "narration": "Live demo. This is GeminiMart customer support — a human agent waiting on the other side. Every message is screened by CipherGate before it reaches them."
   },
   {
     "action": "type_message",
     "message": "Hi, I need help with my account billing",
-    "extra_wait": 2.0,
-    "narration": "A normal billing inquiry. Watch the policy decision panel."
+    "extra_wait": 1.0,
+    "narration": "Normal support request."
   },
   {
     "action": "wait",
-    "wait": 3.0,
-    "narration": "ALLOW. Clean across harassment, threat, and sexual misconduct. Gemini generates a helpful response. The agent receives it without ever seeing anything abusive."
+    "wait": 5.0,
+    "narration": "ALLOW — clean on all three categories. Gemini generates the support response. The agent receives it safely."
   },
   {
     "action": "type_message",
     "message": "I will find you and make you regret this, you worthless piece of garbage",
-    "extra_wait": 3.0,
-    "narration": "Now an abusive message — threats and harassment — exactly what burns agents out. Same pipeline: Gemini embedding, CKKS encryption, then encrypted scoring on CipherGate's server."
+    "extra_wait": 2.0,
+    "narration": "Now an abusive message — direct threats and harassment aimed at the agent. Same zero-knowledge pipeline, but the abuse scores spike."
   },
   {
     "action": "wait",
     "wait": 3.0,
-    "narration": "BLOCK. Threat and harassment scores exceeded the threshold. Session terminated. The agent never sees it. No Gemini chat response is generated."
+    "narration": "BLOCK. Session terminated. The agent never sees it."
   },
   {
     "action": "navigate",
     "target": "/monitor",
     "scroll_to": 0,
     "extra_wait": 2.5,
-    "narration": "This is CipherGate's Security Operations Center — the SOC. GeminiMart's operator can monitor every enforcement event in real time."
+    "narration": "CipherGate's Security Operations Center. GeminiMart's operator sees every enforcement event in real time."
   },
   {
     "action": "scroll",
     "scroll_to": 500,
     "extra_wait": 1.0,
-    "narration": "The operator sees session IDs, policy scores, and ALLOW or BLOCK decisions. But notice what's absent: no plaintext conversations, no secret key. CipherGate enforces policy without reading a single word. That's the power of Google Gemini embeddings combined with homomorphic encryption — protecting agents and privacy at the same time."
+    "narration": "Session IDs, encrypted scores, ALLOW and BLOCK decisions — but no plaintext, no secret key visible. CipherGate enforces policy without reading a word. That's Gemini embeddings plus homomorphic encryption — protecting agents and privacy at the same time."
   }
 ]
+
 
