@@ -231,7 +231,7 @@ export function getPolicyTuningPaths(): {
 } {
   return {
     policyConfigDir: POLICY_CONFIG_DIR,
-    policyPreset: POLICY_PRESET,
+    policyPreset: POLICY_PRESET || "default",
     effectivePolicyDir: EFFECTIVE_POLICY_DIR,
     localPolicyConfigPath: LOCAL_POLICY_CONFIG_PATH,
     decisionThresholdsConfigPath: DECISION_THRESHOLDS_CONFIG_PATH,
