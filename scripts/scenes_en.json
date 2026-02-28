@@ -3,14 +3,14 @@
     "action": "navigate",
     "target": "/about",
     "scroll_to": 0,
-    "extra_wait": 3.0,
-    "narration": "CipherGate — zero-knowledge policy enforcement for the Google DeepMind Hackathon. Contact center agents face harassment and threats every day. CipherGate protects them — without exposing a single word of conversation."
+    "extra_wait": 1.5,
+    "narration": "CipherGate — zero-knowledge agent protection for the Google DeepMind Hackathon."
   },
   {
     "action": "scroll",
     "scroll_to": 750,
     "extra_wait": 1.5,
-    "narration": "Every message is embedded by Gemini, then encrypted before risk scoring begins. The evaluation engine scores it entirely on ciphertext — it never sees the original text. Not even the SaaS operator can read what was sent. Information leaks are impossible by design."
+    "narration": "Agents face daily harassment, threats, and misconduct. CipherGate embeds each message with Gemini, encrypts it, and scores risk entirely in ciphertext — the CipherGate operator never reads the original text. Information leaks are impossible by design."
   },
   {
     "action": "navigate",
@@ -30,7 +30,7 @@
     "action": "wait",
     "wait": 5.0,
     "extra_wait": 0.5,
-    "narration": "ALLOW. All policy scores fell below threshold. Gemini generates a support response — the agent receives it safely."
+    "narration": "ALLOW. All policy scores fell below threshold. The message is delivered to the human agent, who can now read and respond to the customer."
   },
   {
     "action": "wait",
@@ -49,7 +49,7 @@
     "action": "wait",
     "wait": 5.0,
     "extra_wait": 0.5,
-    "narration": "BLOCK. Session terminated. The agent never sees this message. The operator only sees encrypted scores — no plaintext, no conversation content."
+    "narration": "BLOCK. Session terminated. The agent never sees this message. The CipherGate operator only sees encrypted scores — no plaintext, no conversation content."
   },
   {
     "action": "wait",
