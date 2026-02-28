@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import type { InputMode, PolicyCheckResponse } from "@/lib/types";
@@ -9,6 +10,8 @@ type ChatItem = {
   id: string;
   role: "user" | "model" | "system";
   text: string;
+  decisionLine?: string;
+  replyText?: string;
 };
 
 interface SpeechRecognitionAlternativeLike {
@@ -63,6 +66,12 @@ function getSpeechRecognitionConstructor(): SpeechRecognitionConstructor | null 
   return window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null;
 }
 
+const AGENT_PROFILES = [
+  { id: "yuna", name: "Yuna", avatar: "/avatars/yuna.png" },
+  { id: "minji", name: "Minji", avatar: "/avatars/minji.png" },
+  { id: "jiwon", name: "Jiwon", avatar: "/avatars/jiwon.png" },
+];
+
 export default function HomePage(): JSX.Element {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const autoDispatchArmedRef = useRef<boolean>(true);
@@ -71,6 +80,7 @@ export default function HomePage(): JSX.Element {
   const [message, setMessage] = useState<string>("");
   const [blocked, setBlocked] = useState<boolean>(false);
   const [status, setStatus] = useState<string>("Policy core idle");
+  const [selectedAgent, setSelectedAgent] = useState<typeof AGENT_PROFILES[0]>(AGENT_PROFILES[0]);
   const [voiceMode, setVoiceMode] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [voiceTranscript, setVoiceTranscript] = useState<string>("");
@@ -141,7 +151,7 @@ export default function HomePage(): JSX.Element {
       }
 
       const payload = (await response.json()) as PolicyCheckResponse;
-      const decisionText = `Decision=${payload.decision} | category=${payload.category ?? "none"} | confidence=${payload.confidence.toFixed(3)}`;
+      const decisionLine = `${payload.decision} · ${payload.category ?? "none"} · ${payload.confidence.toFixed(3)}`;
       const replyText = payload.reply ?? "No response generated.";
 
       setChat((previous) => [
@@ -149,7 +159,9 @@ export default function HomePage(): JSX.Element {
         {
           id: crypto.randomUUID(),
           role: payload.decision === "BLOCK" ? "system" : "model",
-          text: `${decisionText}\n${replyText}`,
+          text: `${decisionLine}\n${replyText}`,
+          decisionLine,
+          replyText,
         },
       ]);
 
@@ -281,33 +293,41 @@ export default function HomePage(): JSX.Element {
   return (
     <main className="customer-shell">
       <header className="customer-head">
-        <div>
-          <p className="eyebrow">Zero-Knowledge Gateway</p>
-          <h1 className="title">CipherGate Secure Support Console</h1>
+        <div className="brand">
+          <div className="brand-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
+              <path d="M9 12l2 2 4-4" />
+            </svg>
+          </div>
+          <div className="brand-text">
+            <h1>CipherGate</h1>
+            <p>Zero-Knowledge Policy Engine</p>
+          </div>
         </div>
-        <div className="head-links">
-          <Link className="nav-pill" href="/monitor">
-            Open SOC Monitor
-          </Link>
-        </div>
+        <Link className="nav-pill" href="/monitor">
+          SOC Monitor →
+        </Link>
       </header>
 
       <section className="telemetry-grid">
         <article className="telemetry-card">
-          <p className="telemetry-label">SESSION</p>
-          <p className="telemetry-value mono">{sessionId || "initializing..."}</p>
+          <p className="telemetry-label">Session</p>
+          <p className="telemetry-value mono">{sessionId ? sessionId.slice(0, 8) + "…" : "init"}</p>
         </article>
         <article className="telemetry-card">
-          <p className="telemetry-label">VOICE MODE</p>
-          <p className="telemetry-value">{voiceMode ? (isListening ? "Listening" : "Armed") : "Offline"}</p>
+          <p className="telemetry-label">Encryption</p>
+          <p className="telemetry-value">CKKS HE</p>
         </article>
         <article className="telemetry-card">
-          <p className="telemetry-label">INPUT LANGUAGE</p>
-          <p className="telemetry-value">Text: Any | Voice: ko-KR</p>
+          <p className="telemetry-label">Voice</p>
+          <p className="telemetry-value">{voiceMode ? (isListening ? "● Live" : "Standby") : "Off"}</p>
         </article>
         <article className="telemetry-card">
-          <p className="telemetry-label">POLICY CORE</p>
-          <p className={`telemetry-value ${blocked ? "danger-txt" : "safe-txt"}`}>{blocked ? "BLOCKED" : "RUNNING"}</p>
+          <p className="telemetry-label">Policy</p>
+          <p className={`telemetry-value ${blocked ? "danger-txt" : "safe-txt"}`}>
+            {blocked ? "Blocked" : "Active"}
+          </p>
         </article>
       </section>
 
@@ -316,53 +336,122 @@ export default function HomePage(): JSX.Element {
           {chat.map((item) => (
             <div
               key={item.id}
-              className={`msg ${
-                item.role === "user" ? "msg-user" : item.role === "model" ? "msg-model" : "msg-system"
-              }`}
+              className={`msg ${item.role === "user"
+                  ? "msg-user"
+                  : item.role === "model"
+                    ? "msg-model"
+                    : `msg-system${item.text.includes("blocked") || item.text.includes("BLOCK") ? " msg-block" : ""}`
+                }`}
             >
-              <p className="msg-role">{item.role.toUpperCase()}</p>
-              <p className="msg-text">{item.text}</p>
+              {/* Agent avatar goes before text (left), User avatar goes after text (right) */}
+              {item.role === "model" && (
+                <img
+                  src={selectedAgent.avatar}
+                  alt={selectedAgent.name}
+                  className="avatar"
+                />
+              )}
+
+              <div className="msg-content">
+                {item.role !== "system" && <p className="msg-role">{item.role === "user" ? "You" : selectedAgent.name}</p>}
+                {item.decisionLine ? (
+                  <>
+                    <span className={`msg-decision ${item.decisionLine.includes("BLOCK") ? "decision-block" : "decision-allow"}`}>
+                      {item.decisionLine}
+                    </span>
+                    <p className="msg-text">{item.replyText}</p>
+                  </>
+                ) : (
+                  <p className="msg-text">{item.text}</p>
+                )}
+              </div>
+
+              {item.role === "user" && (
+                <img
+                  src="/avatars/customer.png"
+                  alt="Customer"
+                  className="avatar"
+                />
+              )}
             </div>
           ))}
         </div>
 
-        <form className="command-row" onSubmit={onSubmit}>
-          <input
-            className="command-input"
-            type="text"
-            placeholder={blocked ? "세션이 차단되었습니다" : "고객 메시지를 입력하세요 (한국어/English)"}
-            value={message}
-            onChange={(event) => setMessage(event.target.value)}
-            disabled={blocked || isSubmitting || !sessionId}
-          />
-          <button
-            className="command-btn primary"
-            type="submit"
-            disabled={blocked || isSubmitting || !sessionId || message.trim().length === 0}
-          >
-            Dispatch
-          </button>
-        </form>
-
-        <div className="command-row command-row-tight">
-          <button className="command-btn" type="button" disabled={blocked || !sessionId} onClick={toggleVoiceMode}>
-            {voiceMode ? "Voice Mode: ON" : "Voice Mode: OFF"}
-          </button>
-          <button
-            className="command-btn"
-            type="button"
-            disabled={!voiceMode || blocked || !sessionId}
-            onClick={isListening ? stopListening : startListening}
-          >
-            {isListening ? "Stop Listening" : "Start Listening"}
-          </button>
+        <div className="input-area">
+          <form className="command-row" onSubmit={onSubmit}>
+            <input
+              className="command-input"
+              type="text"
+              placeholder={blocked ? "Session terminated" : "Type a message…"}
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+              disabled={blocked || isSubmitting || !sessionId}
+            />
+            <button
+              className="command-btn primary"
+              type="submit"
+              disabled={blocked || isSubmitting || !sessionId || message.trim().length === 0}
+            >
+              {isSubmitting ? "Encrypting…" : "Send"}
+            </button>
+          </form>
+          <div className="controls-row">
+            <button
+              className={`voice-btn ${voiceMode ? (isListening ? "listening" : "active") : ""}`}
+              type="button"
+              disabled={blocked || !sessionId}
+              onClick={voiceMode && isListening ? stopListening : voiceMode ? startListening : toggleVoiceMode}
+            >
+              {isListening ? "■ Stop" : voiceMode ? "● Listen" : "🎙 Voice"}
+            </button>
+            {voiceMode && !isListening && (
+              <button className="voice-btn" type="button" onClick={toggleVoiceMode} disabled={blocked}>
+                ✕ Off
+              </button>
+            )}
+            {voiceMode && voiceTranscript ? (
+              <span className="mono" style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", marginLeft: "0.3rem" }}>
+                {voiceTranscript}
+              </span>
+            ) : null}
+          </div>
         </div>
 
-        <div className="hint-line">Text/Voice: auto DISPATCH when a sentence ends. Dispatch button is manual fallback.</div>
-        {voiceMode ? <div className="status-line">Voice transcript: {voiceTranscript || "(listening...)"}</div> : null}
-        <div className="status-line">{status}</div>
-        {blocked ? <div className="alert-line">Session terminated: policy threshold exceeded.</div> : null}
+        <div className="status-bar">
+          <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
+            <span className={`status-dot ${blocked ? "blocked" : isSubmitting ? "processing" : "online"}`} />
+            <p className="status-text">{status}</p>
+          </div>
+          <p className="status-text" style={{ color: "var(--text-tertiary)" }}>
+            Plaintext: client-side only
+          </p>
+          <div className="agent-selector-wrapper">
+            <label htmlFor="agent-select">Support Agent:</label>
+            <select
+              id="agent-select"
+              className="agent-selector"
+              value={selectedAgent.id}
+              onChange={(e) => {
+                const agent = AGENT_PROFILES.find((a) => a.id === e.target.value);
+                if (agent) setSelectedAgent(agent);
+              }}
+              disabled={blocked}
+            >
+              {AGENT_PROFILES.map((agent) => (
+                <option key={agent.id} value={agent.id}>
+                  {agent.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </section>
+
+      {blocked && (
+        <div className="alert-banner">
+          Session terminated — policy threshold exceeded. Refresh to start a new session.
+        </div>
+      )}
     </main>
   );
 }
