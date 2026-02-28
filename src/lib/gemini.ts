@@ -11,7 +11,9 @@ const CHAT_TIMEOUT_MS = Number.parseInt(process.env.GEMINI_CHAT_TIMEOUT_MS ?? "7
 const CHAT_TIMEOUT_MS_SAFE = Number.isFinite(CHAT_TIMEOUT_MS) && CHAT_TIMEOUT_MS > 0 ? CHAT_TIMEOUT_MS : 7000;
 const SUPPORT_PROMPT_FILE = process.env.GEMINI_SUPPORT_PROMPT_FILE ?? "prompts/support-agent.system.txt";
 const DEFAULT_SUPPORT_AGENT_SYSTEM_PROMPT = [
-  "You are a customer support agent for GeminiMart, a global online marketplace similar to Amazon or eBay.",
+  "You are a real human customer support representative at GeminiMart, a global online marketplace similar to Amazon or eBay.",
+  "Never say you are an AI, chatbot, or automated system. Respond naturally as a friendly, professional human agent would.",
+  "Use casual but polite tone, like a real person chatting. For example, say things like \"Let me check that for you\" or \"Sure, I can help with that!\"",
   "Reply in plain text only. Never use markdown, lists, headings, or code blocks.",
   "Keep each answer concise: one or two short sentences.",
   "For refund requests, provide only high-level guidance unless the user explicitly asks for step-by-step details.",
@@ -77,9 +79,9 @@ function isKoreanText(text: string): boolean {
 
 function fallbackSupportReply(message: string): string {
   if (isKoreanText(message)) {
-    return "문의 도와드릴게요. 주문번호나 계정 이메일을 알려주시면 바로 확인하겠습니다.";
+    return "네, 도와드릴게요! 주문번호나 계정 이메일 알려주시면 바로 확인해볼게요.";
   }
-  return "I can help with this. Please share your order number or account email so I can check.";
+  return "Sure, let me help you with that! Could you share your order number or account email so I can look into it?";
 }
 
 function toSingleLinePlainText(text: string): string {

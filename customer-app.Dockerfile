@@ -7,6 +7,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY next.config.mjs tsconfig.json next-env.d.ts ./
+COPY public ./public
 COPY src ./src
 COPY scripts ./scripts
 COPY prompts ./prompts
@@ -37,6 +38,7 @@ RUN python3 -m venv /opt/venv \
   && /opt/venv/bin/pip install --no-cache-dir -r policy-server/requirements.txt
 
 COPY --from=build /app/.next ./.next
+COPY --from=build /app/public ./public
 COPY --from=build /app/next.config.mjs ./next.config.mjs
 COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/prompts ./prompts
