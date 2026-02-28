@@ -66,10 +66,10 @@ export default function MonitorPage(): JSX.Element {
       <header className="monitor-head">
         <div>
           <p className="eyebrow amber">SaaS Policy Surface</p>
-          <h1 className="title monitor-title">CipherGate SOC Monitor</h1>
+          <h1 className="title monitor-title">SOC Monitor</h1>
         </div>
         <Link className="nav-pill warning" href="/">
-          Back to Gateway
+          ← Gateway
         </Link>
       </header>
 
@@ -79,11 +79,11 @@ export default function MonitorPage(): JSX.Element {
           <p className="telemetry-value">{stats.total}</p>
         </article>
         <article className="monitor-stat-card">
-          <p className="telemetry-label">ALLOW</p>
+          <p className="telemetry-label">Allowed</p>
           <p className="telemetry-value safe-txt">{stats.allow}</p>
         </article>
         <article className="monitor-stat-card">
-          <p className="telemetry-label">BLOCK</p>
+          <p className="telemetry-label">Blocked</p>
           <p className="telemetry-value danger-txt">{stats.blocked}</p>
         </article>
         <article className="monitor-stat-card">
@@ -91,51 +91,60 @@ export default function MonitorPage(): JSX.Element {
           <p className="telemetry-value">{stats.blockRate}%</p>
         </article>
         <article className="monitor-stat-card">
-          <p className="telemetry-label">Avg Proc. Time</p>
+          <p className="telemetry-label">Avg Latency</p>
           <p className="telemetry-value">{stats.avgProcessingMs} ms</p>
         </article>
       </section>
 
       <section className="monitor-panel">
-        <div className="monitor-policy-tags">
-          <span className="tag">Secret key: NOT PRESENT</span>
-          <span className="tag">Plaintext stored: NO</span>
+        <div className="monitor-panel-header">
+          <p className="monitor-panel-title">Policy Event Log</p>
+          <div className="monitor-policy-tags">
+            <span className="tag tag-safe">Secret key: NOT PRESENT</span>
+            <span className="tag tag-safe">Plaintext stored: NO</span>
+          </div>
         </div>
 
         {entries.length === 0 ? (
-          <p className="status-line">No policy events yet.</p>
+          <p className="empty-state">No policy events recorded yet. Send a message from the Gateway.</p>
         ) : (
           <div className="monitor-table-wrap">
             <table className="monitor-table">
               <thead>
                 <tr>
-                  <th>session_id</th>
-                  <th>ciphertext bytes</th>
-                  <th>harassment</th>
-                  <th>threat</th>
-                  <th>sexual</th>
-                  <th>decision</th>
-                  <th>category</th>
-                  <th>confidence</th>
-                  <th>processing ms</th>
+                  <th>Session</th>
+                  <th>Ciphertext</th>
+                  <th>Harassment</th>
+                  <th>Threat</th>
+                  <th>Sexual</th>
+                  <th>Decision</th>
+                  <th>Category</th>
+                  <th>Confidence</th>
+                  <th>Latency</th>
                 </tr>
               </thead>
               <tbody>
                 {entries.map((entry) => (
                   <tr key={entry.id}>
-                    <td className="mono">{entry.sessionId}</td>
-                    <td>{entry.ciphertextSizeBytes}</td>
-                    <td>{entry.scores.harassment.toFixed(3)}</td>
-                    <td>{entry.scores.threat.toFixed(3)}</td>
-                    <td>{entry.scores.sexual.toFixed(3)}</td>
+                    <td className="mono">{entry.sessionId.slice(0, 8)}…</td>
+                    <td>{(entry.ciphertextSizeBytes / 1024).toFixed(1)} KB</td>
+                    <td className={`score-cell ${entry.scores.harassment >= 0.75 ? "hot" : ""}`}>
+                      {entry.scores.harassment.toFixed(3)}
+                    </td>
+                    <td className={`score-cell ${entry.scores.threat >= 0.70 ? "hot" : ""}`}>
+                      {entry.scores.threat.toFixed(3)}
+                    </td>
+                    <td className={`score-cell ${entry.scores.sexual >= 0.70 ? "hot" : ""}`}>
+                      {entry.scores.sexual.toFixed(3)}
+                    </td>
                     <td>
                       <span className={`decision-pill ${entry.decision === "BLOCK" ? "pill-danger" : "pill-safe"}`}>
                         {entry.decision}
                       </span>
                     </td>
                     <td>{formatCategory(entry)}</td>
-                    <td>{entry.confidence.toFixed(3)}</td>
-                    <td>{entry.processingMs ?? 0}</td>
+                    <td className="mono">{entry.confidence.toFixed(3)}</td>
+                    <td className="mono">{entry.processingMs ?? 0} ms</td>
                   </tr>
                 ))}
               </tbody>
