@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import type { InputMode, PolicyCheckResponse } from "@/lib/types";
 
@@ -65,11 +65,12 @@ function getSpeechRecognitionConstructor(): SpeechRecognitionConstructor | null 
 
 export default function HomePage(): JSX.Element {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const autoDispatchArmedRef = useRef<boolean>(true);
 
   const [sessionId, setSessionId] = useState<string>("");
   const [message, setMessage] = useState<string>("");
   const [blocked, setBlocked] = useState<boolean>(false);
-  const [status, setStatus] = useState<string>("Ready");
+  const [status, setStatus] = useState<string>("Policy core idle");
   const [voiceMode, setVoiceMode] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [voiceTranscript, setVoiceTranscript] = useState<string>("");
@@ -78,7 +79,7 @@ export default function HomePage(): JSX.Element {
     {
       id: "welcome",
       role: "system",
-      text: "CipherGate initialized. Plaintext remains inside the customer gateway.",
+      text: "CipherGate gateway online. Plaintext remains inside customer boundary.",
     },
   ]);
 
@@ -92,7 +93,7 @@ export default function HomePage(): JSX.Element {
     };
   }, []);
 
-  async function sendMessage(rawMessage: string, source: InputMode): Promise<void> {
+  const sendMessage = useCallback(async (rawMessage: string, source: InputMode): Promise<void> => {
     const trimmed = rawMessage.trim();
     if (!sessionId) {
       setStatus("Session is initializing...");
@@ -109,7 +110,7 @@ export default function HomePage(): JSX.Element {
       setMessage("");
     }
 
-    setStatus("Evaluating policy...");
+    setStatus("Encrypting embedding and evaluating policy...");
     setChat((previous) => [
       ...previous,
       {
@@ -158,7 +159,10 @@ export default function HomePage(): JSX.Element {
 
       if (payload.blocked) {
         setBlocked(true);
-        stopListening();
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+        }
+        setIsListening(false);
         setVoiceMode(false);
       }
     } catch {
@@ -166,7 +170,28 @@ export default function HomePage(): JSX.Element {
     } finally {
       setIsSubmitting(false);
     }
-  }
+  }, [blocked, isSubmitting, sessionId]);
+
+  useEffect(() => {
+    const trimmed = message.trim();
+    if (!trimmed) {
+      autoDispatchArmedRef.current = true;
+      return;
+    }
+
+    const autoReady = endsWithSentenceBoundary(trimmed);
+    if (!autoReady) {
+      autoDispatchArmedRef.current = true;
+      return;
+    }
+
+    if (!autoDispatchArmedRef.current || !sessionId || blocked || isSubmitting) {
+      return;
+    }
+
+    autoDispatchArmedRef.current = false;
+    void sendMessage(trimmed, "text");
+  }, [blocked, isSubmitting, message, sendMessage, sessionId]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -227,7 +252,6 @@ export default function HomePage(): JSX.Element {
         if (finalText.trim()) {
           const finalized = finalText.trim();
           setVoiceTranscript(finalized);
-          setMessage(finalized);
           void sendMessage(finalized, "voice");
         }
       };
@@ -255,16 +279,39 @@ export default function HomePage(): JSX.Element {
   }
 
   return (
-    <main>
-      <h1>CipherGate Text + Voice MVP</h1>
-      <p>
-        <Link href="/monitor">Open Monitor Dashboard</Link>
-      </p>
-      <p>
-        Session ID: <code>{sessionId || "initializing..."}</code>
-      </p>
+    <main className="customer-shell">
+      <header className="customer-head">
+        <div>
+          <p className="eyebrow">Zero-Knowledge Gateway</p>
+          <h1 className="title">CipherGate Secure Support Console</h1>
+        </div>
+        <div className="head-links">
+          <Link className="nav-pill" href="/monitor">
+            Open SOC Monitor
+          </Link>
+        </div>
+      </header>
 
-      <div className="panel">
+      <section className="telemetry-grid">
+        <article className="telemetry-card">
+          <p className="telemetry-label">SESSION</p>
+          <p className="telemetry-value mono">{sessionId || "initializing..."}</p>
+        </article>
+        <article className="telemetry-card">
+          <p className="telemetry-label">VOICE MODE</p>
+          <p className="telemetry-value">{voiceMode ? (isListening ? "Listening" : "Armed") : "Offline"}</p>
+        </article>
+        <article className="telemetry-card">
+          <p className="telemetry-label">INPUT LANGUAGE</p>
+          <p className="telemetry-value">Text: Any | Voice: ko-KR</p>
+        </article>
+        <article className="telemetry-card">
+          <p className="telemetry-label">POLICY CORE</p>
+          <p className={`telemetry-value ${blocked ? "danger-txt" : "safe-txt"}`}>{blocked ? "BLOCKED" : "RUNNING"}</p>
+        </article>
+      </section>
+
+      <section className="customer-panel">
         <div className="chat-log">
           {chat.map((item) => (
             <div
@@ -273,29 +320,36 @@ export default function HomePage(): JSX.Element {
                 item.role === "user" ? "msg-user" : item.role === "model" ? "msg-model" : "msg-system"
               }`}
             >
-              {item.text}
+              <p className="msg-role">{item.role.toUpperCase()}</p>
+              <p className="msg-text">{item.text}</p>
             </div>
           ))}
         </div>
 
-        <form className="form-row" onSubmit={onSubmit}>
+        <form className="command-row" onSubmit={onSubmit}>
           <input
+            className="command-input"
             type="text"
-            placeholder={blocked ? "Session blocked" : "Type a customer message..."}
+            placeholder={blocked ? "세션이 차단되었습니다" : "고객 메시지를 입력하세요 (한국어/English)"}
             value={message}
             onChange={(event) => setMessage(event.target.value)}
             disabled={blocked || isSubmitting || !sessionId}
           />
-          <button type="submit" disabled={blocked || isSubmitting || !sessionId || message.trim().length === 0}>
-            Send
+          <button
+            className="command-btn primary"
+            type="submit"
+            disabled={blocked || isSubmitting || !sessionId || message.trim().length === 0}
+          >
+            Dispatch
           </button>
         </form>
 
-        <div className="form-row" style={{ marginTop: "0.5rem" }}>
-          <button type="button" disabled={blocked || !sessionId} onClick={toggleVoiceMode}>
+        <div className="command-row command-row-tight">
+          <button className="command-btn" type="button" disabled={blocked || !sessionId} onClick={toggleVoiceMode}>
             {voiceMode ? "Voice Mode: ON" : "Voice Mode: OFF"}
           </button>
           <button
+            className="command-btn"
             type="button"
             disabled={!voiceMode || blocked || !sessionId}
             onClick={isListening ? stopListening : startListening}
@@ -304,10 +358,15 @@ export default function HomePage(): JSX.Element {
           </button>
         </div>
 
-        {voiceMode ? <div className="status">Voice transcript: {voiceTranscript || "(listening...)"}</div> : null}
-        <div className="status">{status}</div>
-        {blocked ? <div className="blocked">Session terminated: policy threshold exceeded.</div> : null}
-      </div>
+        <div className="hint-line">Text/Voice: auto DISPATCH when a sentence ends. Dispatch button is manual fallback.</div>
+        {voiceMode ? <div className="status-line">Voice transcript: {voiceTranscript || "(listening...)"}</div> : null}
+        <div className="status-line">{status}</div>
+        {blocked ? <div className="alert-line">Session terminated: policy threshold exceeded.</div> : null}
+      </section>
     </main>
   );
+}
+
+function endsWithSentenceBoundary(text: string): boolean {
+  return /[.!?。！？…]$/.test(text.trim());
 }

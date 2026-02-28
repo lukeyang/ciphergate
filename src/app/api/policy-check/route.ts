@@ -17,6 +17,7 @@ import { PolicyCheckResponse } from "@/lib/types";
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest): Promise<NextResponse<PolicyCheckResponse | { error: string }>> {
+  const policyStartAt = Date.now();
   const body = (await request.json()) as { sessionId?: string; message?: string };
   const sessionId = body.sessionId?.trim() ?? "";
   const message = body.message?.trim() ?? "";
@@ -52,10 +53,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<PolicyChe
     const decryptedScores = await decryptEncryptedScores(encryptedScores);
 
     const result = evaluatePolicy(decryptedScores);
+    const processingMs = Date.now() - policyStartAt;
 
     addMonitorEntry({
       sessionId,
       ciphertextSizeBytes: Buffer.from(encryptedEmbedding.ciphertextEmbedding, "base64").byteLength,
+      processingMs,
       scores: result.scores,
       decision: result.decision,
       category: result.category,

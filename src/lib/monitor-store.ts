@@ -7,6 +7,7 @@ export type MonitorEntry = {
   id: string;
   sessionId: string;
   ciphertextSizeBytes: number;
+  processingMs?: number;
   scores: PolicyScores;
   decision: PolicyDecision;
   category: PolicyCategory | null;
