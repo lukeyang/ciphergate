@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import type { LocalPolicyDebug } from "./local-policy";
+import { runtimePath } from "./runtime-path";
 import type { InputMode, PolicyCategory, PolicyDecision, PolicyScores, PolicyTimings } from "./types";
 
 export type PolicyDebugEntry = {
@@ -29,7 +30,7 @@ export type PolicyDebugEntry = {
   error?: string;
 };
 
-const MONITOR_DIR = path.join(process.cwd(), "customer-gateway", "monitor");
+const MONITOR_DIR = runtimePath("monitor");
 const DEBUG_FILE = path.join(MONITOR_DIR, "debug-events.json");
 const REDACTED_MESSAGE = "[REDACTED]";
 type NewDebugEntry = Omit<PolicyDebugEntry, "id" | "createdAt">;

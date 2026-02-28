@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { PolicyCategory, PolicyDecision, PolicyScores } from "./types";
+import { runtimePath } from "./runtime-path";
 
 export type MonitorEntry = {
   id: string;
@@ -15,7 +16,7 @@ export type MonitorEntry = {
   createdAt: string;
 };
 
-const MONITOR_DIR = path.join(process.cwd(), "customer-gateway", "monitor");
+const MONITOR_DIR = runtimePath("monitor");
 const MONITOR_FILE = path.join(MONITOR_DIR, "events.json");
 
 export function addMonitorEntry(entry: Omit<MonitorEntry, "id" | "createdAt">): void {

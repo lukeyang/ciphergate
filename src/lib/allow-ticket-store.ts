@@ -2,6 +2,8 @@ import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
+import { runtimePath } from "./runtime-path";
+
 type AllowTicket = {
   token: string;
   sessionId: string;
@@ -10,7 +12,7 @@ type AllowTicket = {
 };
 
 const TICKET_TTL_MS = 2 * 60 * 1000;
-const STORE_DIR = path.join(process.cwd(), "customer-gateway", "runtime");
+const STORE_DIR = runtimePath("runtime");
 const STORE_FILE = path.join(STORE_DIR, "allow-tickets.json");
 
 export function issueAllowTicket(sessionId: string, message: string): string {

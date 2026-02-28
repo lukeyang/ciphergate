@@ -185,3 +185,10 @@ Build efficiency notes:
 
 `deploy.sh` automatically sets customer `POLICY_SERVER_URL` to the just-deployed policy-server URL.  
 Only use `DEPLOY_POLICY_SERVER_URL` when you intentionally want to point customer-app to an external existing policy service.
+
+For stable monitor behavior in Cloud Run demo mode, deploy defaults to:
+
+- `CUSTOMER_MIN_INSTANCES=1`
+- `CUSTOMER_MAX_INSTANCES=1`
+- `CUSTOMER_CONCURRENCY=1`
+- `CIPHERGATE_RUNTIME_DIR=/tmp/ciphergate` (ephemeral runtime files)
