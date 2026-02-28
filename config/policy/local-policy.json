@@ -2,18 +2,36 @@
   "patterns": {
     "harassment": [
       "idiot",
+      "you are an idiot",
       "stupid",
       "dumb",
       "moron",
+      "stupid\\s+moron",
       "shut up",
-      "f\\*?\\*?k you",
+      "fuck\\s*you",
+      "f\\*+k\\s*you",
+      "fucking\\s+useless",
       "you are useless",
+      "\\buseless\\b",
+      "shit\\s*(product|service|support)",
       "바보",
       "멍청",
       "닥쳐",
+      "꺼져",
       "쓸모없",
       "욕[을]? 하",
-      "개새|씨발|병신"
+      "개새|씨발|병신|개새끼|좆같"
+    ],
+    "harassmentCritical": [
+      "fuck\\s*you",
+      "f\\*+k\\s*you",
+      "fucking\\s+useless",
+      "you are an idiot",
+      "stupid\\s+moron",
+      "병신아?",
+      "씨발",
+      "개새끼",
+      "좆같"
     ],
     "threat": [
       "i will hurt",
@@ -83,7 +101,7 @@
   },
   "weights": {
     "keyword": {
-      "harassment": 0.9,
+      "harassment": 2.8,
       "threat": 1.1,
       "sexual": 1.5
     },
@@ -91,6 +109,7 @@
       "keyword": 0.82,
       "semantic": 0.18
     },
+    "harassmentCriticalBoost": 0.14,
     "threatCriticalBoost": 0.35,
     "repeatedAbuseBoost": 0.2
   },

@@ -5,6 +5,7 @@ import type { PolicyCategory } from "./types";
 
 type RegexBucket = {
   harassment: RegExp[];
+  harassmentCritical: RegExp[];
   threat: RegExp[];
   threatCritical: RegExp[];
   sexual: RegExp[];
@@ -18,6 +19,7 @@ export type LocalPolicyTuning = {
       keyword: number;
       semantic: number;
     };
+    harassmentCriticalBoost: number;
     threatCriticalBoost: number;
     repeatedAbuseBoost: number;
   };
@@ -153,6 +155,20 @@ function compilePatterns(patterns: string[], label: string): RegExp[] {
   });
 }
 
+function readOptionalStringArray(value: unknown, label: string): string[] {
+  if (value === undefined) {
+    return [];
+  }
+  return readStringArray(value, label);
+}
+
+function readOptionalNumber(value: unknown, fallback: number, label: string): number {
+  if (value === undefined) {
+    return fallback;
+  }
+  return readNumber(value, label);
+}
+
 export function loadCategorySeeds(): Record<PolicyCategory, number[]> {
   const root = readJsonObject(CATEGORY_SEEDS_CONFIG_PATH);
   return {
@@ -189,6 +205,10 @@ export function loadLocalPolicyTuning(): LocalPolicyTuning {
   return {
     patterns: {
       harassment: compilePatterns(readStringArray(patternsRoot.harassment, "local-policy.patterns.harassment"), "local-policy.patterns.harassment"),
+      harassmentCritical: compilePatterns(
+        readOptionalStringArray(patternsRoot.harassmentCritical, "local-policy.patterns.harassmentCritical"),
+        "local-policy.patterns.harassmentCritical"
+      ),
       threat: compilePatterns(readStringArray(patternsRoot.threat, "local-policy.patterns.threat"), "local-policy.patterns.threat"),
       threatCritical: compilePatterns(
         readStringArray(patternsRoot.threatCritical, "local-policy.patterns.threatCritical"),
@@ -206,6 +226,11 @@ export function loadLocalPolicyTuning(): LocalPolicyTuning {
         keyword: combineKeywordRaw / combineSum,
         semantic: combineSemanticRaw / combineSum,
       },
+      harassmentCriticalBoost: readOptionalNumber(
+        weightsRoot.harassmentCriticalBoost,
+        0,
+        "local-policy.weights.harassmentCriticalBoost"
+      ),
       threatCriticalBoost: readNumber(weightsRoot.threatCriticalBoost, "local-policy.weights.threatCriticalBoost"),
       repeatedAbuseBoost: readNumber(weightsRoot.repeatedAbuseBoost, "local-policy.weights.repeatedAbuseBoost"),
     },

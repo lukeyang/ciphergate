@@ -9,6 +9,7 @@ export function scoreLocally(message: string, embedding: number[]): PolicyScores
 export type LocalPolicyDebug = {
   normalizedMessage: string;
   repeatedAbuseBoost: number;
+  harassmentCriticalBoost: number;
   threatCriticalBoost: number;
   harassment: CategoryDebug;
   threat: CategoryDebug;
@@ -70,12 +71,15 @@ export function scoreLocallyWithDebug(message: string, embedding: number[]): { s
     tuning.semantic.power,
     tuning.semantic.positiveOnly
   );
+  const harassmentCriticalBoost = hasPatternMatch(lower, tuning.patterns.harassmentCritical)
+    ? tuning.weights.harassmentCriticalBoost
+    : 0;
   const threatCriticalBoost = hasPatternMatch(lower, tuning.patterns.threatCritical)
     ? tuning.weights.threatCriticalBoost
     : 0;
 
   const harassmentCombined = combineScores(
-    harassmentKeyword.score,
+    clamp01(harassmentKeyword.score + harassmentCriticalBoost),
     harassmentSemantic,
     tuning.weights.combine.keyword,
     tuning.weights.combine.semantic
@@ -102,6 +106,7 @@ export function scoreLocallyWithDebug(message: string, embedding: number[]): { s
     debug: {
       normalizedMessage: lower,
       repeatedAbuseBoost: repetitionBoost,
+      harassmentCriticalBoost,
       threatCriticalBoost,
       harassment: {
         keyword: harassmentKeyword.score,
