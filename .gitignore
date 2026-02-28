@@ -1,0 +1,12 @@
+.next
+node_modules
+.env
+.env.local
+.venv
+coverage
+.DS_Store
+customer-gateway/keys/*.seal
+policy-server/keys/*.seal
+customer-gateway/monitor/events.json
+__pycache__/
+*.pyc
